@@ -237,6 +237,10 @@ void Copter::fast_loop()
     // --------------------
     read_AHRS();
 
+    if (should_log(MASK_LOG_RCOUT)) {
+        logger.Write_RCOUT();
+    }
+
 #if FRAME_CONFIG == HELI_FRAME
     update_heli_control_dynamics();
     #if MODE_AUTOROTATE_ENABLED == ENABLED
@@ -405,9 +409,9 @@ void Copter::ten_hz_logging_loop()
             logger.Write_RSSI();
         }
     }
-    if (should_log(MASK_LOG_RCOUT)) {
-        logger.Write_RCOUT();
-    }
+    // if (should_log(MASK_LOG_RCOUT)) {
+    //     logger.Write_RCOUT();
+    // }
     if (should_log(MASK_LOG_NTUN) && (flightmode->requires_GPS() || landing_with_GPS())) {
         pos_control->write_log();
     }
