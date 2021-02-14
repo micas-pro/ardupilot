@@ -163,6 +163,12 @@ Mode *Copter::mode_from_mode_num(const Mode::Number mode)
             break;
 #endif
 
+#if MODE_FIXEDTESTTRAJECTORY_ENABLED == ENABLED
+        case Mode::Number::FIXED_TEST_TRAJECTORY:
+            ret = &mode_fixedtesttrajectory;
+            break;
+#endif
+
 #if MODE_AUTOROTATE_ENABLED == ENABLED
         case Mode::Number::AUTOROTATE:
             ret = &mode_autorotate;

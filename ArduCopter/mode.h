@@ -36,6 +36,7 @@ public:
         ZIGZAG    =    24,  // ZIGZAG mode is able to fly in a zigzag manner with predefined point A and point B
         SYSTEMID  =    25,  // System ID mode produces automated system identification signals in the controllers
         AUTOROTATE =   26,  // Autonomous autorotation
+        FIXED_TEST_TRAJECTORY =     27, // Re-play a fixed (hardcoded) trajectory for attitude controller testing
     };
 
     // constructor
@@ -1555,6 +1556,33 @@ private:
 
     //--- Internal functions ---
     void warning_message(uint8_t message_n);    //Handles output messages to the terminal
+
+};
+#endif
+
+
+#if MODE_FIXEDTESTTRAJECTORY_ENABLED == ENABLED
+class ModeFixedTestTrajectory: public Mode {
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    bool init(bool ignore_checks) override;
+    void run() override;
+
+    bool requires_GPS() const override { return false; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(bool from_gcs) const override { return true; };
+    bool is_autopilot() const override { return true; }
+
+protected:
+
+    const char *name() const override { return "FIXEDTESTTRAJECTORY"; }
+    const char *name4() const override { return "FXTT"; }
+
+private:
+    const static float fixed_trajectory[];
 
 };
 #endif

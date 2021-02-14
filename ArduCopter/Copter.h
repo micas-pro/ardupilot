@@ -222,6 +222,7 @@ public:
     friend class ModeThrow;
     friend class ModeZigZag;
     friend class ModeAutorotate;
+    friend class ModeFixedTestTrajectory;
 
     Copter(void);
 
@@ -967,7 +968,9 @@ private:
 #if MODE_AUTOROTATE_ENABLED == ENABLED
     ModeAutorotate mode_autorotate;
 #endif
-
+#if MODE_FIXEDTESTTRAJECTORY_ENABLED == ENABLED
+    ModeFixedTestTrajectory mode_fixedtesttrajectory;
+#endif
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
     void exit_mode(Mode *&old_flightmode, Mode *&new_flightmode);

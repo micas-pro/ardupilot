@@ -259,6 +259,12 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
+// Fixed Test Trajectory mode - re-play hardcoded trajectory for Attitude Controller testing
+#ifndef MODE_FIXEDTESTTRAJECTORY_ENABLED
+# define MODE_FIXEDTESTTRAJECTORY_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
 // Acro - fly vehicle in acrobatic mode
 #ifndef MODE_ACRO_ENABLED
 # define MODE_ACRO_ENABLED ENABLED
