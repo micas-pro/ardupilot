@@ -1582,7 +1582,35 @@ protected:
     const char *name4() const override { return "FXTT"; }
 
 private:
-    const static float fixed_trajectory[];
+    // returns pitch value in centidegrees for current trajectory step
+    float get_current_trajectory_value();
 
+    // returns throttle value for current trajectory step; value: 0..1
+    float get_current_throttle();
+
+    // tries to advance trajectory to the next step
+    // returns false if end of trajectory is reached
+    bool next_step();
+
+    bool check_started();
+
+    void reset();
+
+    void debug_msg(const char *fmt, ...);
+    
+    static const int16_t fixed_trajectory[];
+    static size_t get_trajectory_length();
+
+    // current step in the test trajectory
+    uint32_t _current_step;
+
+    // experiment time in seconds
+    float _current_time;
+
+    bool _started;
+
+    #define MODE_FIXED_TRAJECTORY_TIME_STEP_SECONDS                 0.0025f
+    #define MODE_FIXED_TRAJECTORY_THROTTLE_START_TIME_SECONDS       3.0f
+    #define MODE_FIXED_TRAJECTORY_THROTTLE_IDLE_TIME_SECONDS        1.0f
 };
 #endif
