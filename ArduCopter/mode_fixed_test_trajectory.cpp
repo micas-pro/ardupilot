@@ -32,18 +32,20 @@ void ModeFixedTestTrajectory::debug_msg(const char *fmt, ...)
 
 float ModeFixedTestTrajectory::get_current_throttle()
 {
+    const float hover_power_reduction_coeff = 0.2f;
+
     if (_current_time <= 0.0f) {
         return 0.0f;
     } else if (_current_time <= MODE_FIXED_TRAJECTORY_THROTTLE_IDLE_TIME_SECONDS + MODE_FIXED_TRAJECTORY_THROTTLE_START_TIME_SECONDS) {
         return constrain_float(linear_interpolate(
             0.0f, 
-            throttle_hover(), 
+            throttle_hover() * hover_power_reduction_coeff, 
             _current_time, 
             MODE_FIXED_TRAJECTORY_THROTTLE_IDLE_TIME_SECONDS, 
             MODE_FIXED_TRAJECTORY_THROTTLE_IDLE_TIME_SECONDS + MODE_FIXED_TRAJECTORY_THROTTLE_START_TIME_SECONDS), 
         0.0f, 1.0f);
     } else {
-        return throttle_hover();
+        return throttle_hover() * hover_power_reduction_coeff;
     }
 }
 
@@ -74,12 +76,20 @@ bool ModeFixedTestTrajectory::next_step()
 bool ModeFixedTestTrajectory::check_started()
 {
     // TODO add arm/disarm check!
+
+    int16_t throttle_control = channel_throttle->get_control_in();
+    int16_t mid_stick = copter.get_throttle_mid();
+    // protect against unlikely divide by zero
+    if (mid_stick <= 0) {
+        mid_stick = 500;
+    }
+
     if (_started) {
-        if (copter.ap.throttle_zero) {
+        if (copter.ap.throttle_zero || throttle_control < mid_stick) {
             reset();
         }
     } else {
-        if (!copter.ap.throttle_zero) {
+        if (!copter.ap.throttle_zero && throttle_control >= mid_stick) {
             reset();
             _started = true;
         }
@@ -99,6 +109,9 @@ void ModeFixedTestTrajectory::run()
     } else {
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
     }
+
+    float throttle = 0.0f;
+    float target_pitch = 0.0f;
 
     switch (motors->get_spool_state()) {
         case AP_Motors::SpoolState::SHUT_DOWN:
@@ -121,7 +134,7 @@ void ModeFixedTestTrajectory::run()
             // clear landing flag above zero throttle
             if (!motors->limit.throttle_lower) {
                 set_land_complete(false);
-            }
+            }             
             break;
 
         case AP_Motors::SpoolState::SPOOLING_UP:
@@ -130,13 +143,11 @@ void ModeFixedTestTrajectory::run()
             break;
     }
 
-    float throttle = 0.0f;
-    float target_pitch = 0.0f;
     if (check_started() && next_step()) {
         throttle = get_current_throttle();
         target_pitch = get_current_trajectory_value();
-    } 
-
+    }
+    
     static uint32_t cnt = 0;
     if (cnt++ % 200 == 0) {
         debug_msg("throttle: %.2f, pitch: %.2f", throttle, target_pitch);
