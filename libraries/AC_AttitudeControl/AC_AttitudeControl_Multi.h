@@ -5,6 +5,7 @@
 
 #include "AC_AttitudeControl.h"
 #include <AP_Motors/AP_MotorsMulticopter.h>
+#include "AC_AttitudeControl_GPC.h"
 
 // default rate controller PID gains
 #ifndef AC_ATC_MULTI_RATE_RP_P
@@ -41,7 +42,7 @@
 
 class AC_AttitudeControl_Multi : public AC_AttitudeControl {
 public:
-	AC_AttitudeControl_Multi(AP_AHRS_View &ahrs, const AP_Vehicle::MultiCopter &aparm, AP_MotorsMulticopter& motors, float dt);
+	AC_AttitudeControl_Multi(AP_AHRS_View &ahrs, const AP_Vehicle::MultiCopter &aparm, AP_MotorsMulticopter& motors, float dt, AC_AttitudeControl_GPC &secondary_controller);
 
 	// empty destructor to suppress compiler warning
 	virtual ~AC_AttitudeControl_Multi() {}
@@ -73,10 +74,13 @@ public:
     bool is_throttle_mix_min() const override { return (_throttle_rpy_mix < 1.25f * _thr_mix_min); }
 
     // run lowest level body-frame rate controller and send outputs to the motors
-    void rate_controller_run() override;
+    virtual void rate_controller_run() override;
 
     // sanity check parameters.  should be called once before take-off
     void parameter_sanity_check() override;
+
+    // set how much the secondary controller is used: 0..1, 0 - PID only, 1 - secondary controller only, 0.5 - average of PID and GPC signal
+    void set_secondary_controller_weight(float w) { _secondary_controller_weight = w; }
 
     // user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
@@ -97,4 +101,8 @@ protected:
     AP_Float              _thr_mix_man;     // throttle vs attitude control prioritisation used when using manual throttle (higher values mean we prioritise attitude control over throttle)
     AP_Float              _thr_mix_min;     // throttle vs attitude control prioritisation used when landing (higher values mean we prioritise attitude control over throttle)
     AP_Float              _thr_mix_max;     // throttle vs attitude control prioritisation used during active flight (higher values mean we prioritise attitude control over throttle)
+
+private:
+    AC_AttitudeControl_GPC& _secondary_controller;
+    float _secondary_controller_weight;    
 };

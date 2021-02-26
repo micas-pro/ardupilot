@@ -1,5 +1,6 @@
 #include "Copter.h"
 #include <AP_BLHeli/AP_BLHeli.h>
+#include <AC_AttitudeControl/AC_AttitudeControl_GPC.h>
 
 /*****************************************************************************
 *   The init_ardupilot function processes everything we need for an in - air restart
@@ -582,7 +583,8 @@ void Copter::allocate_motors(void)
     const struct AP_Param::GroupInfo *ac_var_info;
 
 #if FRAME_CONFIG != HELI_FRAME
-    attitude_control = new AC_AttitudeControl_Multi(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s());
+    gpc_attitude_control = new AC_AttitudeControl_GPC(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s());
+    attitude_control = new AC_AttitudeControl_Multi(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s(), *gpc_attitude_control);
     ac_var_info = AC_AttitudeControl_Multi::var_info;
 #else
     attitude_control = new AC_AttitudeControl_Heli(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s());

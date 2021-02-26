@@ -8,7 +8,7 @@
 #define MOUNT                 DISABLED            // disable the camera gimbal to save 8K of flash space
 #define AUTOTUNE_ENABLED      DISABLED            // disable the auto tune functionality to save 7k of flash
 //#define AC_FENCE              DISABLED            // disable fence to save 2k of flash
-//#define CAMERA                DISABLED            // disable camera trigger to save 1k of flash
+#define CAMERA                DISABLED            // disable camera trigger to save 1k of flash
 //#define RANGEFINDER_ENABLED   DISABLED            // disable rangefinder to save 1k of flash
 //#define PROXIMITY_ENABLED     DISABLED            // disable proximity sensors
 //#define AC_RALLY              DISABLED            // disable rally points library (must also disable terrain which relies on rally)
@@ -43,8 +43,8 @@
 //#define MODE_SMARTRTL_ENABLED DISABLED            // disable smartrtl mode support
 //#define MODE_SPORT_ENABLED    DISABLED            // disable sport mode support
 //#define MODE_SYSTEMID_ENABLED DISABLED            // disable system ID mode support
-//#define MODE_THROW_ENABLED    DISABLED            // disable throw mode support
-//#define MODE_ZIGZAG_ENABLED   DISABLED            // disable zigzag mode support
+#define MODE_THROW_ENABLED    DISABLED            // disable throw mode support
+#define MODE_ZIGZAG_ENABLED   DISABLED            // disable zigzag mode support
 //#define OSD_ENABLED           DISABLED            // disable on-screen-display support
 //#define BUTTON_ENABLED        DISABLED            // disable button support
 

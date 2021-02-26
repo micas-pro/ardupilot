@@ -1562,6 +1562,9 @@ private:
 
 
 #if MODE_FIXEDTESTTRAJECTORY_ENABLED == ENABLED
+
+#define DUAL_CONTROL_TUNE_CHANNEL               6
+
 class ModeFixedTestTrajectory: public Mode {
 
 public:
@@ -1608,6 +1611,8 @@ private:
     float _current_time;
 
     bool _started;
+
+    float _gpc_weight;
 
     #define MODE_FIXED_TRAJECTORY_TIME_STEP_SECONDS                 0.0025f
     #define MODE_FIXED_TRAJECTORY_THROTTLE_START_TIME_SECONDS       2.0f

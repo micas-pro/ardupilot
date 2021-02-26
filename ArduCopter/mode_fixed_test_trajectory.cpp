@@ -1,4 +1,5 @@
 #include "Copter.h"
+#include <RC_Channel/RC_Channel.h>
 
 #if MODE_FIXEDTESTTRAJECTORY_ENABLED == ENABLED
 
@@ -22,12 +23,10 @@ bool ModeFixedTestTrajectory::init(bool ignore_checks)
 
 void ModeFixedTestTrajectory::debug_msg(const char *fmt, ...)
 {
-    char taggedfmt[MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN+1];
-    hal.util->snprintf(taggedfmt, sizeof(taggedfmt), "%s", fmt);
-    va_list arg_list;
-    va_start(arg_list, fmt);
-    gcs().send_textv(MAV_SEVERITY_DEBUG, taggedfmt, arg_list);
-    va_end(arg_list);
+    // va_list arg_list;
+    // va_start(arg_list, fmt);
+    // gcs().send_textv(MAV_SEVERITY_DEBUG, fmt, arg_list);
+    // va_end(arg_list);
 }
 
 float ModeFixedTestTrajectory::get_current_throttle()
@@ -59,6 +58,7 @@ void ModeFixedTestTrajectory::reset()
     _current_step = 0;
     _current_time = 0.0f;
     _started = false;
+    _gpc_weight = 0.0f;
 }
 
 bool ModeFixedTestTrajectory::next_step()
@@ -149,8 +149,15 @@ void ModeFixedTestTrajectory::run()
     }
     
     static uint32_t cnt = 0;
-    if (cnt++ % 200 == 0) {
-        debug_msg("throttle: %.2f, pitch: %.2f", throttle, target_pitch);
+    cnt++;
+    if (cnt % 200 == 0) {
+        debug_msg("throttle: %.2f, pitch: %.2f, mix: %.2f", throttle, target_pitch, _gpc_weight);
+    }
+
+    if (cnt % 16 == 0) {
+        // update dual-control mixing
+        _gpc_weight = (float)(rc().channel(DUAL_CONTROL_TUNE_CHANNEL-1)->percent_input()) / 100.0f;
+        attitude_control->set_secondary_controller_weight(_gpc_weight);
     }
 
     // call attitude controller
