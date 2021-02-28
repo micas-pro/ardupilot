@@ -80,7 +80,8 @@ public:
     void parameter_sanity_check() override;
 
     // set how much the secondary controller is used: 0..1, 0 - PID only, 1 - secondary controller only, 0.5 - average of PID and GPC signal
-    void set_secondary_controller_weight(float w) { _secondary_controller_weight = w; }
+    void set_secondary_controller_weight(const float w) { _secondary_controller_weight = constrain_float(w, 0.0f, 1.0f); }
+    float get_secondary_controller_weight() { return _secondary_controller_weight; }
 
     // user settable parameters
     static const struct AP_Param::GroupInfo var_info[];

@@ -191,6 +191,12 @@ void Copter::tuning()
 #if MODE_SYSTEMID_ENABLED == ENABLED
          copter.mode_systemid.set_magnitude(tuning_value);
 #endif
-         break;
+    case TUNING_GPC_MIX:
+        attitude_control->set_secondary_controller_weight(tuning_value);
+        break;
+
+    case TUNING_GPC_LAMBDA:
+        gpc_attitude_control->set_lambda(tuning_value);
+        break;
     }
 }

@@ -11,6 +11,7 @@ public:
     virtual ~AC_AttitudeControl_GPC() {}
 
     float get_pitch();
+    void set_lambda(float lambda);
 
     virtual AC_PID& get_rate_roll_pid() override;
     virtual AC_PID& get_rate_pitch_pid() override;

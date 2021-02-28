@@ -23,15 +23,15 @@ bool ModeFixedTestTrajectory::init(bool ignore_checks)
 
 void ModeFixedTestTrajectory::debug_msg(const char *fmt, ...)
 {
-    // va_list arg_list;
-    // va_start(arg_list, fmt);
-    // gcs().send_textv(MAV_SEVERITY_DEBUG, fmt, arg_list);
-    // va_end(arg_list);
+    va_list arg_list;
+    va_start(arg_list, fmt);
+    gcs().send_textv(MAV_SEVERITY_DEBUG, fmt, arg_list);
+    va_end(arg_list);
 }
 
 float ModeFixedTestTrajectory::get_current_throttle()
 {
-    const float hover_power_reduction_coeff = 0.2f;
+    const float hover_power_reduction_coeff = 0.5f;
 
     if (_current_time <= 0.0f) {
         return 0.0f;
@@ -58,7 +58,6 @@ void ModeFixedTestTrajectory::reset()
     _current_step = 0;
     _current_time = 0.0f;
     _started = false;
-    _gpc_weight = 0.0f;
 }
 
 bool ModeFixedTestTrajectory::next_step()
@@ -100,6 +99,9 @@ bool ModeFixedTestTrajectory::check_started()
 
 void ModeFixedTestTrajectory::run()
 {
+    static uint32_t cnt = 0;
+    cnt++;
+
     if (!motors->armed()) {
         // Motors should be Stopped
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
@@ -146,19 +148,18 @@ void ModeFixedTestTrajectory::run()
     if (check_started() && next_step()) {
         throttle = get_current_throttle();
         target_pitch = get_current_trajectory_value();
-    }
+    }    
     
-    static uint32_t cnt = 0;
-    cnt++;
     if (cnt % 200 == 0) {
-        debug_msg("throttle: %.2f, pitch: %.2f, mix: %.2f", throttle, target_pitch, _gpc_weight);
+        debug_msg("throttle: %.2f, pitch: %.2f, mix: %.2f", throttle, target_pitch, attitude_control->get_secondary_controller_weight());
+        //debug_msg("check: %i", check_started() ? 1 : 0);
     }
 
-    if (cnt % 16 == 0) {
-        // update dual-control mixing
-        _gpc_weight = (float)(rc().channel(DUAL_CONTROL_TUNE_CHANNEL-1)->percent_input()) / 100.0f;
-        attitude_control->set_secondary_controller_weight(_gpc_weight);
-    }
+    // if (cnt % 16 == 0) {
+    //     // update dual-control mixing
+    //     _gpc_weight = (float)(rc().channel(DUAL_CONTROL_TUNE_CHANNEL-1)->percent_input()) / 100.0f;
+    //     attitude_control->set_secondary_controller_weight(_gpc_weight);
+    // }
 
     // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0.0f, target_pitch, 0.0f);

@@ -16,6 +16,11 @@ float AC_AttitudeControl_GPC::get_pitch()
     return 0.0f;
 }
 
+void AC_AttitudeControl_GPC::set_lambda(const float lambda) 
+{
+    _gpc_params.lambda = lambda;
+}
+
 AC_PID& AC_AttitudeControl_GPC::get_rate_roll_pid() 
 {
     return *nullpid;
