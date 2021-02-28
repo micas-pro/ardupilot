@@ -1563,8 +1563,6 @@ private:
 
 #if MODE_FIXEDTESTTRAJECTORY_ENABLED == ENABLED
 
-#define DUAL_CONTROL_TUNE_CHANNEL               6
-
 class ModeFixedTestTrajectory: public Mode {
 
 public:
