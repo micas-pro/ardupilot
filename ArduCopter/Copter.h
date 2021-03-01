@@ -67,6 +67,7 @@
 #include <AP_Parachute/AP_Parachute.h>
 #include <AC_Sprayer/AC_Sprayer.h>
 #include <AP_ADSB/AP_ADSB.h>
+#include <RC_Channel/RC_Channel.h>
 
 // Configuration
 #include "defines.h"
@@ -887,9 +888,9 @@ private:
     void userhook_MediumLoop();
     void userhook_SlowLoop();
     void userhook_SuperSlowLoop();
-    void userhook_auxSwitch1(uint8_t ch_flag);
-    void userhook_auxSwitch2(uint8_t ch_flag);
-    void userhook_auxSwitch3(uint8_t ch_flag);
+    void userhook_auxSwitch1(const RC_Channel::AuxSwitchPos ch_flag);
+    void userhook_auxSwitch2(const RC_Channel::AuxSwitchPos ch_flag);
+    void userhook_auxSwitch3(const RC_Channel::AuxSwitchPos ch_flag);
 
 #if OSD_ENABLED == ENABLED
     void publish_osd_info();

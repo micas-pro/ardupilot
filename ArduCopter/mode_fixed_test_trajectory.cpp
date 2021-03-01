@@ -15,6 +15,7 @@ size_t ModeFixedTestTrajectory::get_trajectory_length()
 bool ModeFixedTestTrajectory::init(bool ignore_checks)
 {
     reset();
+    _zero_trajectory = false;
 
     debug_msg("ModeFixedTestTrajectory init: %u steps", (uint32_t)get_trajectory_length());
     
@@ -34,7 +35,7 @@ float ModeFixedTestTrajectory::get_current_throttle()
     const float hover_power_reduction_coeff = 0.5f;
 
     if (_current_time <= 0.0f) {
-        return 0.0f;
+        return 0.0f;    
     } else if (_current_time <= MODE_FIXED_TRAJECTORY_THROTTLE_IDLE_TIME_SECONDS + MODE_FIXED_TRAJECTORY_THROTTLE_START_TIME_SECONDS) {
         return constrain_float(linear_interpolate(
             0.0f, 
@@ -49,20 +50,23 @@ float ModeFixedTestTrajectory::get_current_throttle()
 }
 
 float ModeFixedTestTrajectory::get_current_trajectory_value()
-{
-    return (float)fixed_trajectory[_current_step];
+{    
+    return _zero_trajectory ? 0.0f : (float)fixed_trajectory[_current_step];
 }
 
 void ModeFixedTestTrajectory::reset()
 {
     _current_step = 0;
     _current_time = 0.0f;
-    _started = false;
+    _started = false;    
 }
 
 bool ModeFixedTestTrajectory::next_step()
 {
-    if(_current_step >= get_trajectory_length() - 1) {
+    if (_zero_trajectory) {
+        _current_step = 0;
+        return true;
+    } else if (_current_step >= get_trajectory_length() - 1) {
         _current_step = get_trajectory_length() - 1;
         return false;
     } else {
@@ -152,14 +156,7 @@ void ModeFixedTestTrajectory::run()
     
     if (cnt % 200 == 0) {
         debug_msg("throttle: %.2f, pitch: %.2f, mix: %.2f", throttle, target_pitch, attitude_control->get_secondary_controller_weight());
-        //debug_msg("check: %i", check_started() ? 1 : 0);
     }
-
-    // if (cnt % 16 == 0) {
-    //     // update dual-control mixing
-    //     _gpc_weight = (float)(rc().channel(DUAL_CONTROL_TUNE_CHANNEL-1)->percent_input()) / 100.0f;
-    //     attitude_control->set_secondary_controller_weight(_gpc_weight);
-    // }
 
     // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0.0f, target_pitch, 0.0f);
@@ -169,4 +166,40 @@ void ModeFixedTestTrajectory::run()
                                        true,
                                        g.throttle_filt);
 }
+
+void ModeFixedTestTrajectory::aux_switch(const uint8_t aux_nr, const RC_Channel::AuxSwitchPos ch_flag) 
+{
+    switch (aux_nr)
+    {
+    case 1:
+        switch (ch_flag)
+        {
+        case RC_Channel::AuxSwitchPos::HIGH:
+            debug_msg("Zero trajectory ON");
+            _zero_trajectory = true;
+            break;
+        
+        case RC_Channel::AuxSwitchPos::MIDDLE:
+        case RC_Channel::AuxSwitchPos::LOW:
+            debug_msg("Zero trajectory OFF");
+            _zero_trajectory = false;
+            break;
+        
+        default:
+            debug_msg("Unknown AuxSwitchPos == %i", (int)ch_flag);
+            break;
+        }
+        break;
+    
+    case 2:
+    case 3:
+        // currently unused
+    break;
+
+    default:
+        debug_msg("Unknown aux_nr == %i", aux_nr);
+        break;
+    }
+}
+
 #endif

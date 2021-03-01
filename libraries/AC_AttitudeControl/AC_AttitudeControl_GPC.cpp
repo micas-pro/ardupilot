@@ -1,14 +1,26 @@
 #include "AC_AttitudeControl_GPC.h"
 
 
-AC_AttitudeControl_GPC::AC_AttitudeControl_GPC(AP_AHRS_View &ahrs, const AP_Vehicle::MultiCopter &aparm, AP_MotorsMulticopter& motors, float dt) 
-    : AC_AttitudeControl(ahrs, aparm, motors, dt)
+AC_AttitudeControl_GPC::AC_AttitudeControl_GPC(AP_AHRS_View &ahrs, const AP_Vehicle::MultiCopter &aparm, AP_MotorsMulticopter& motors, float dt):   
+    _dt(dt),
+    _ahrs(ahrs),
+    _aparm(aparm),
+    _motors(motors)
 {
-    _gpc_params.lambda = 0.5f;
-    _gpc_params.n = 30;
-    _gpc_params.nu = 10;
+    GPC_Params<float> params;
+    params.lambda = 0.5f;
+    params.min_u = -0.6f;
+    params.max_u = 0.6f;
 
-    nullpid = new AC_PID(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    LinearModel<float> model(40, 10);
+    LinearModel<float> y0_model(40, 10);
+
+    gpc_pitch = new GPC_Controller<float, GPC_N, GPC_Nu>(params, model, y0_model);
+}
+
+AC_AttitudeControl_GPC::~AC_AttitudeControl_GPC() 
+{
+    delete gpc_pitch;
 }
 
 float AC_AttitudeControl_GPC::get_pitch() 
@@ -18,22 +30,7 @@ float AC_AttitudeControl_GPC::get_pitch()
 
 void AC_AttitudeControl_GPC::set_lambda(const float lambda) 
 {
-    _gpc_params.lambda = lambda;
-}
-
-AC_PID& AC_AttitudeControl_GPC::get_rate_roll_pid() 
-{
-    return *nullpid;
-}
-
-AC_PID& AC_AttitudeControl_GPC::get_rate_pitch_pid() 
-{
-    return *nullpid;
-}
-
-AC_PID& AC_AttitudeControl_GPC::get_rate_yaw_pid() 
-{
-    return *nullpid;
+    //_gpc_params.lambda = lambda;
 }
 
 void AC_AttitudeControl_GPC::rate_controller_run() 
@@ -41,12 +38,3 @@ void AC_AttitudeControl_GPC::rate_controller_run()
     
 }
 
-void AC_AttitudeControl_GPC::update_althold_lean_angle_max(float throttle_in) 
-{
-    
-}
-
-void AC_AttitudeControl_GPC::set_throttle_out(float throttle_in, bool apply_angle_boost, float filt_cutoff) 
-{
-    
-}

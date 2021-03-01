@@ -1577,6 +1577,8 @@ public:
     bool allows_arming(bool from_gcs) const override { return true; };
     bool is_autopilot() const override { return true; }
 
+    void aux_switch(const uint8_t aux_nr, const RC_Channel::AuxSwitchPos ch_flag);
+
 protected:
 
     const char *name() const override { return "FIXEDTESTTRAJECTORY"; }
@@ -1607,6 +1609,9 @@ private:
 
     // experiment time in seconds
     float _current_time;
+
+    // use zero-trajectory to test stabilization
+    bool _zero_trajectory;
 
     bool _started;
 

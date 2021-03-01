@@ -835,3 +835,4 @@ uint16_t Mode::get_pilot_speed_dn()
 {
     return copter.get_pilot_speed_dn();
 }
+
