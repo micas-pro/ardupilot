@@ -583,7 +583,7 @@ void Copter::allocate_motors(void)
     const struct AP_Param::GroupInfo *ac_var_info;
 
 #if FRAME_CONFIG != HELI_FRAME
-    gpc_attitude_control = new AC_AttitudeControl_GPC(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s());
+    gpc_attitude_control = new AC_AttitudeControl_GPC(gcs());
     attitude_control = new AC_AttitudeControl_Multi(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s(), *gpc_attitude_control);
     ac_var_info = AC_AttitudeControl_Multi::var_info;
 #else
