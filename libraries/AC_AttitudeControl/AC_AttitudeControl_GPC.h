@@ -7,28 +7,9 @@
 #include "AC_AttitudeControl_GPC_defines.h"
 #include <AP_AHRS/AP_AHRS.h>
 #include <GCS_MAVLink/GCS.h>
-
-#define GPC_N                               25
-#define GPC_Nu                              1
-
-#define _GPC_DEBUG_LOG_1HZ                  (c % 400 == 0)
-#define _GPC_DEBUG_LOG_2HZ                  (c % 200 == 0)
-#define _GPC_DEBUG_LOG_5HZ                  (c % 80 == 0)
-
-#define GPC_DEBUG_LOG_INIT                  static uint32_t c = 0; c++;
-#define GPC_DEBUG_LOG(__fmt__, ...)         _gcs.send_text(MAV_SEVERITY_DEBUG, __fmt__, __VA_ARGS__)
-#define GPC_DEBUG_LOG_1HZ(__fmt__, ...)     if (_GPC_DEBUG_LOG_1HZ) GPC_DEBUG_LOG(__fmt__, __VA_ARGS__)
-#define GPC_DEBUG_LOG_2HZ(__fmt__, ...)     if (_GPC_DEBUG_LOG_2HZ) GPC_DEBUG_LOG(__fmt__, __VA_ARGS__)
-#define GPC_DEBUG_LOG_5HZ(__fmt__, ...)     if (_GPC_DEBUG_LOG_5HZ) GPC_DEBUG_LOG(__fmt__, __VA_ARGS__)
-
-float normalize(const float x, const float x_shift, const float x_d);
-float normalize_dy(const float dy, const uint8_t n);
-float normalize_y(const float y);
-float normalize_u(const float u);
-void calculate_diffs(float *diffs, const size_t &n);
-
-float denormalize(const float x, const float x_shift, const float x_d);
-float denormalize_dy1(const float dy1);
+#include "AC_GPC_Helpers.h"
+#include "AC_GPC_LinearModels.h"
+#include <AP_HAL/system.h>
 
 template <typename T = float>
 struct GPC_Params
@@ -38,53 +19,15 @@ struct GPC_Params
     T max_u;
 };
 
-template <typename T>
-class LinearModel;
-
-template <typename T>
-class LinearModel
-{
-public:
-    LinearModel(const uint8_t y_steps, const uint8_t u_steps):
-        _y_steps(y_steps),
-        _u_steps(u_steps)
-    {
-        _y = new CircularBuffer<T>(y_steps);
-        _u = new CircularBuffer<T>(u_steps);
-    }
-
-    virtual ~LinearModel() 
-    {
-        delete _y;
-        delete _u;
-    }
-
-    void load_weights(const T w[]);
-    T predict_one_step(const T &u, const T &dk);
-    void measured_y(const T &y);
-    void reset_to(const LinearModel &model);
-    bool ready();
-
-private:    
-
-    T predict_one_step();
-
-    MatrixNxM<T, GPC_LINEAR_MODEL_WEIGHTS, 1> _weights;
-    MatrixNxM<T, 1, GPC_LINEAR_MODEL_WEIGHTS> _state;
-    uint8_t _y_steps, _u_steps;
-    CircularBuffer<T> *_y;
-    CircularBuffer<T> *_u;
-};
-
 template <typename T, uint8_t N, uint8_t Nu>
 class GPC_Controller
 {
 public: 
-    GPC_Controller(const GPC_Params<T> gpc_params, LinearModel<T> *model, LinearModel<T> *y0_model, GCS &gcs)
+    GPC_Controller(const GPC_Params<T> gpc_params, LinearModelBase<T> *model, LinearModelBase<T> *y0_model, DebugLogger *logger)
         : _gpc_params(gpc_params),
         _model(model),
         _y0_model(y0_model),
-        _gcs(gcs)
+        _logger(logger)
     {
         _current_u = T();
     }
@@ -101,14 +44,14 @@ public:
     const T get_current_u() { return _current_u; }
 
 private:
-    GCS &_gcs;
+    DebugLogger *_logger;
     GPC_Params<T> _gpc_params;
-    LinearModel<T> *_model, *_y0_model;
+    LinearModelBase<T> *_model, *_y0_model;
     T _current_u;
     MatrixNxM<T, Nu, N> K;
 };
 
-class AC_AttitudeControl_GPC 
+class AC_AttitudeControl_GPC : public DebugLogger
 {
 public:
     AC_AttitudeControl_GPC(GCS &gcs);
@@ -120,10 +63,83 @@ public:
     void set_lambda(const float lambda);
     void rate_controller_run(const float roll, const float target_roll, const float pitch, const float target_pitch, const float yaw, const float target_yaw);
 
-    void debug_msg(const char *fmt, ...);
-
 private:    
-    GCS &_gcs;
     GPC_Controller<float, GPC_N, GPC_Nu> *_gpc_pitch_controller;
 };
+
+// templates implementation ----------------------------------------------------
+
+
+template<typename T, uint8_t N, uint8_t Nu>
+void GPC_Controller<T, N, Nu>::initialize() 
+{
+    _model->load_weights(defines::gpc::linear_model_w);
+    _y0_model->load_weights(defines::gpc::linear_model_w);
+
+    for (uint8_t i=0;i<GPC_Nu;i++)
+        for (uint8_t j=0;j<GPC_N;j++)
+            K[i][j] = defines::gpc::gpc_K[i][j];
+}
+
+template<typename T, uint8_t N, uint8_t Nu>
+void GPC_Controller<T, N, Nu>::set_lambda(const T &lambda) 
+{
+    _gpc_params.lambda = lambda;
+}
+
+template<typename T, uint8_t N, uint8_t Nu>
+const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y) 
+{
+    uint64_t start_time = AP_HAL::micros64();
+    GPC_DEBUG_LOG_INIT;
+
+    // prediction
+    const T predicted_y = _model->predict_one_step(_current_u, T());    
+    //GPC_DEBUG_LOG_1HZ("GPC py=%.2f", predicted_y);
+
+    // adjust model to current measurement
+    _model->measured_y(y);
+
+    // skip if there is not enough past data for the model
+    if (!_model->ready()) {
+        return T();
+    }
+
+    if (c % 10 != 0) return _current_u;
+
+    // prediction error
+    const T dk = y - predicted_y;
+
+    // free trajectory prediction
+    MatrixNxM<T, N, 1> y0k;
+    MatrixNxM<T, N, 1> y_target(target_y);
+    _y0_model->reset_to(*_model);
+    for (uint8_t i=0;i<N;i++) {
+        y0k[i][0] = _y0_model->predict_one_step(_current_u, dk);
+    }
+
+    // GPC_DEBUG_LOG_05HZ("----Y0-----", NULL);
+    // for (uint8_t i=0;i<N;i++) {
+        
+    //     GPC_DEBUG_LOG_05HZ("%2u: %.3f", i, y0k[i][0]);
+    // }
+    // GPC_DEBUG_LOG_05HZ("-----------", NULL);
+
+    // calculate GPC
+    y_target -= y0k;
+    MatrixNxM<T, Nu, 1> duk = K * y_target;
+
+    // constraints
+    T next_u = _current_u + duk[0][0];
+    GPC_DEBUG_LOG_1HZ("GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", y, target_y, dk, next_u);
+    if (next_u > _gpc_params.max_u) next_u = _gpc_params.max_u;
+    if (next_u < _gpc_params.min_u) next_u = _gpc_params.min_u;
+
+    _current_u = next_u;
+
+    start_time = AP_HAL::micros64() - start_time;
+    GPC_DEBUG_LOG_1HZ("GPC time: %llu us", start_time);
+
+    return _current_u;
+}
 

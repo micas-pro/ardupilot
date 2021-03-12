@@ -14,6 +14,11 @@ public:
     
     virtual ~CircularBuffer() {}
 
+    size_t size() const
+    {
+        return _q.size();
+    }
+
     void add(const T x)
     {
         _q.push_back(x);
@@ -39,6 +44,15 @@ public:
         }
     }
 
+    void get_last_n_items(T buff[], const size_t n) const
+    {
+        size_t nn = n;
+        typename deque<T>::const_reverse_iterator it = _q.rbegin();
+        for (size_t i = 0; it != _q.rend() && nn-- > 0; it++, i++) {
+            buff[i] = *it;
+        }
+    }
+
     void clear()
     {
         _q.clear();
@@ -47,6 +61,11 @@ public:
     bool ready() const
     {
         return _q.size() >= _expected_size;
+    }
+
+    T& get_last_item()
+    {
+        return _q.back();
     }
 
 private:

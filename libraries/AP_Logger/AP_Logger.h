@@ -264,6 +264,7 @@ public:
     void Write_Current();
     void Write_Compass(uint64_t time_us=0);
     void Write_Mode(uint8_t mode, const ModeReason reason);
+    void Write_GPC(const uint8_t status);
 
     void Write_EntireMission();
     void Write_Command(const mavlink_command_int_t &packet, MAV_RESULT result, bool was_command_long=false);

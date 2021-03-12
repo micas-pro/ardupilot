@@ -639,6 +639,16 @@ void AP_Logger::Write_Attitude(const Vector3f &targets)
     WriteBlock(&pkt, sizeof(pkt));
 }
 
+void AP_Logger::Write_GPC(const uint8_t status)
+{
+    const struct log_GPC pkt{
+        LOG_PACKET_HEADER_INIT(LOG_GPC_MSG),
+        time_us         : AP_HAL::micros64(),
+        status          : (uint8_t)status
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
 // Write an attitude packet
 void AP_Logger::Write_AttitudeView(AP_AHRS_View &ahrs, const Vector3f &targets)
 {

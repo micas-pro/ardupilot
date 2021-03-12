@@ -308,6 +308,8 @@ void AC_AttitudeControl_Multi::update_throttle_rpy_mix()
 
 void AC_AttitudeControl_Multi::rate_controller_run()
 {
+    AC_DEBUG_LOG_INIT;
+
     // move throttle vs attitude mixing towards desired (called from here because this is conveniently called on every iteration)
     update_throttle_rpy_mix();
 
@@ -339,8 +341,11 @@ void AC_AttitudeControl_Multi::rate_controller_run()
                                               degrees(ahrs.get_pitch()), targets.y / 100.0f,
                                               0.0f, 0.0f);
 
-    const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch() + (1.0f - _secondary_controller_weight) * pid_pitch, -1.0f, 1.0f);
+    //const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch() + (1.0f - _secondary_controller_weight) * pid_pitch, -1.0f, 1.0f);
+    const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch(), -1.0f, 1.0f);
     _motors.set_pitch(pitch);
+
+    AC_DEBUG_LOG_1HZ("PID=%.3f GPC=%.3f * %.2f", pid_pitch, _secondary_controller.get_pitch(), _secondary_controller_weight);
 
     control_monitor_update();
 }

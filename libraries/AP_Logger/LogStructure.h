@@ -198,6 +198,12 @@ struct PACKED log_Error {
   uint8_t error_code;
 };
 
+struct PACKED log_GPC {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    uint8_t  status;
+};
+
 struct PACKED log_GPS {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -2866,6 +2872,7 @@ enum LogMessages : uint8_t {
     LOG_SIMPLE_AVOID_MSG,
     LOG_WINCH_MSG,
     LOG_PSC_MSG,
+    LOG_GPC_MSG,
 
     _LOG_LAST_MSG_
 };
