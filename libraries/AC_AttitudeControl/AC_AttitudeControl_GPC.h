@@ -89,9 +89,12 @@ void GPC_Controller<T, N, Nu>::set_lambda(const T &lambda)
 
 template<typename T, uint8_t N, uint8_t Nu>
 const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y) 
-{
-    uint64_t start_time = AP_HAL::micros64();
+{    
     GPC_DEBUG_LOG_INIT;
+    uint64_t start_time = 0;
+
+    const bool log05Hz = _GPC_DEBUG_LOG_05HZ;
+    if (log05Hz) start_time = AP_HAL::micros64();
 
     // prediction
     const T predicted_y = _model->predict_one_step(_current_u, T());    
@@ -105,7 +108,7 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
         return T();
     }
 
-    if (c % 10 != 0) return _current_u;
+    //if (c % 10 != 0) return _current_u;
 
     // prediction error
     const T dk = y - predicted_y;
@@ -131,14 +134,16 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
 
     // constraints
     T next_u = _current_u + duk[0][0];
-    GPC_DEBUG_LOG_1HZ("GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", y, target_y, dk, next_u);
+    if (log05Hz) GPC_DEBUG_LOG("GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", y, target_y, dk, next_u);
     if (next_u > _gpc_params.max_u) next_u = _gpc_params.max_u;
     if (next_u < _gpc_params.min_u) next_u = _gpc_params.min_u;
 
     _current_u = next_u;
 
-    start_time = AP_HAL::micros64() - start_time;
-    GPC_DEBUG_LOG_1HZ("GPC time: %llu us", start_time);
+    if (log05Hz) {
+        start_time = AP_HAL::micros64() - start_time;
+        GPC_DEBUG_LOG("GPC time: %llu us", start_time);
+    }
 
     return _current_u;
 }

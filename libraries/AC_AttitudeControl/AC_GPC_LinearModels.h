@@ -6,12 +6,19 @@
 #include <AP_Math/circular_buffer.h>
 
 #define GPC_LINEAR_MODEL_Y                      0
-#define GPC_LINEAR_MODEL_DY                     3
-#define GPC_LINEAR_MODEL_U                      30
-#define GPC_LINEAR_MODEL_D1U                    29
-#define GPC_LINEAR_MODEL_WEIGHTS                (GPC_LINEAR_MODEL_Y + GPC_LINEAR_MODEL_DY + GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U)
+#define GPC_LINEAR_MODEL_DY                     4
+#define GPC_LINEAR_MODEL_U                      0
+#define GPC_LINEAR_MODEL_D1U                    0
+#define GPC_LINEAR_MODEL_U_SUM_WINDOW           30
+#if GPC_LINEAR_MODEL_U_SUM_WINDOW > 0
+    #define GPC_LINEAR_MODEL_U_SUM_USED 1
+#else
+    #define GPC_LINEAR_MODEL_U_SUM_USED 0
+#endif
+//#define GPC_LINEAR_MODEL_WEIGHTS                (GPC_LINEAR_MODEL_Y + GPC_LINEAR_MODEL_DY + GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U)
+#define GPC_LINEAR_MODEL_WEIGHTS                (GPC_LINEAR_MODEL_Y + GPC_LINEAR_MODEL_DY + GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U + GPC_LINEAR_MODEL_U_SUM_WINDOW + GPC_LINEAR_MODEL_U_SUM_USED)
 #define GPC_Nu                                  1
-#define GPC_N                                   70
+#define GPC_N                                   30
 #define GPC_lambda                              1.000f
 #define GPC_GAUSSIAN_SMOOTHING_WINDOW           10
 
@@ -32,84 +39,47 @@ const float normalization_u[2] = { 0.000000000000f, 1.200000000000f };
 const float normalization_d1u[2] = { 0.000000000000f, 0.056000000000f };
 
 const float linear_model_w[GPC_LINEAR_MODEL_WEIGHTS] = { 
-    0.268710881472f, 
-    0.102351501584f, 
-    0.207284823060f, 
-    0.285076498985f, 
-    0.140161767602f, 
-    -0.063153266907f, 
-    -0.097613446414f, 
-    -0.003727850737f, 
-    -0.324658513069f, 
-    0.107500173151f, 
-    -0.121275201440f, 
-    -0.302733749151f, 
-    -0.403476685286f, 
-    0.089980080724f, 
-    0.172666028142f, 
-    0.030766684562f, 
-    -0.152927637100f, 
-    0.268138051033f, 
-    -0.014861730859f, 
-    -0.403797298670f, 
-    0.145706281066f, 
-    0.308621972799f, 
-    0.188603907824f, 
-    -0.094689063728f, 
-    1.424415469170f, 
-    0.221995905042f, 
-    0.698885023594f, 
-    2.738082885742f, 
-    0.014734034427f, 
-    0.104031533003f, 
-    -1.362865686417f, 
-    1.366166234016f, 
-    -0.572940349579f, 
-    0.424482464790f, 
-    -1.532802700996f, 
-    2.383923530579f, 
-    -1.037249445915f, 
-    -1.288316726685f, 
-    0.282602548599f, 
-    2.319040298462f, 
-    -1.182139992714f, 
-    -2.655364274979f, 
-    3.355310440063f, 
-    -0.709246933460f, 
-    -0.950512290001f, 
-    -0.885428011417f, 
-    3.081715583801f, 
-    -2.573507785797f, 
-    -2.195150375366f, 
-    4.605765342712f, 
-    -1.831322073936f, 
-    -2.636324644089f, 
-    -2.516123056412f, 
-    10.121372222900f, 
-    -9.447655677795f, 
-    -1.320758342743f, 
-    10.517411231995f, 
-    -11.177677154541f, 
-    4.285815715790f, 
-    1.008337616920f, 
-    -0.051476579159f, 
-    -0.018991274759f
+    2.555961847305f, 
+    -3.606574058533f, 
+    0.749199748039f, 
+    -0.836554765701f, 
+    -0.057546745986f, 
+    -3.632860422134f, 
+    0.867749750614f, 
+    2.809866189957f, 
+    -3.319396018982f, 
+    -3.169429779053f, 
+    0.895687818527f, 
+    4.529780864716f, 
+    -3.645090103149f, 
+    -7.897997379303f, 
+    6.779769897461f, 
+    2.711076736450f, 
+    -3.404711484909f, 
+    -4.076398849487f, 
+    2.539579153061f, 
+    5.552387237549f, 
+    -13.000236511230f, 
+    18.222537994385f, 
+    -11.215386390686f, 
+    -4.081554412842f, 
+    -0.938470363617f, 
+    15.093239784241f, 
+    -8.436522483826f, 
+    -17.637632369995f, 
+    27.168569564819f, 
+    -13.987618446350f, 
+    0.525150835514f, 
+    -0.597688198090f, 
+    -0.120367549360f, 
+    0.502316474915f, 
+    -0.083815030754f
 };
 
-// N = 70, too long, CPU stuck?
+// N = 30
 const float gpc_K[GPC_Nu][GPC_N] = { 
-    { 0.000000000000f, 0.000023619179f, -0.000011530310f, 0.000011079507f, 0.000015966199f, -0.000011954100f, 0.000007794231f, 0.000008185336f, 0.000009807995f, -0.000002833195f, 0.000007232447f, 0.000005924256f, -0.000000044955f, 0.000007504309f, 0.000009924050f, 0.000012648918f, 0.000011640830f, 0.000029471138f, 0.000035167128f, 0.000039966273f, 0.000053558072f, 0.000070238915f, 0.000085269202f, 0.000096103771f, 0.000118410978f, 0.000133270017f, 0.000155302781f, 0.000173784664f, 0.000201851326f, 0.000223509383f, 0.000248621803f, 0.000273152189f, 0.000299817700f, 0.000328291794f, 0.000359002711f, 0.000391477347f, 0.000425620717f, 0.000461493291f, 0.000499201662f, 0.000538793571f, 0.000580204624f, 0.000623423968f, 0.000668444402f, 0.000715293180f, 0.000763976738f, 0.000814495431f, 0.000866844538f, 0.000921026117f, 0.000977044827f, 0.001034905150f, 0.001094609373f, 0.001156159101f, 0.001219556505f, 0.001284804411f, 0.001351905746f, 0.001420863134f, 0.001491679034f, 0.001564355936f, 0.001638896455f, 0.001715303242f, 0.001793578921f, 0.001873726082f, 0.001955747317f, 0.002039645237f, 0.002125422466f, 0.002213081629f, 0.002302625351f, 0.002394056254f, 0.002487376971f, 0.002582590136f }
+    { 0.000000000000f, 0.000000000000f, -0.028209453819f, 0.010061187123f, 0.001009945882f, -0.038768019925f, -0.011029407682f, -0.001271414852f, -0.021056888884f, -0.041826451339f, -0.016045956533f, -0.018445241133f, -0.037853996633f, -0.027453139279f, -0.011562118996f, -0.028896007254f, -0.033230142433f, -0.003858869268f, 0.002589499563f, -0.015423376932f, 0.002433040732f, 0.030240870280f, 0.028388634649f, 0.027027477269f, 0.057039514309f, 0.082541082248f, 0.079930741800f, 0.095718726935f, 0.130050048303f, 0.148223555142f }
 };
-
-// N = 50
-// const float gpc_K[GPC_Nu][GPC_N] = { 
-//     { 0.000000000000f, 0.000216233590f, -0.000105559987f, 0.000101432891f, 0.000146170560f, -0.000109439785f, 0.000071356189f, 0.000074936756f, 0.000089792196f, -0.000025937900f, 0.000066213057f, 0.000054236561f, -0.000000411566f, 0.000068701948f, 0.000090854685f, 0.000115800850f, 0.000106571800f, 0.000269808274f, 0.000321955067f, 0.000365891239f, 0.000490324162f, 0.000643037289f, 0.000780639567f, 0.000879830049f, 0.001084052534f, 0.001220087046f, 0.001421797001f, 0.001590998650f, 0.001847948944f, 0.002046228465f, 0.002276132669f, 0.002500708361f, 0.002744831127f, 0.003005511463f, 0.003286669913f, 0.003583975215f, 0.003896557778f, 0.004224971199f, 0.004570191350f, 0.004932655290f, 0.005311773489f, 0.005707446590f, 0.006119608679f, 0.006548509253f, 0.006994207238f, 0.007456705890f, 0.007935961976f, 0.008431994345f, 0.008944845657f, 0.009474556923f }
-// };
-
-// N = 40
-// const float gpc_K[GPC_Nu][GPC_N] = { 
-//     { 0.000000000000f, 0.001020603924f, -0.000498234051f, 0.000478754510f, 0.000689912455f, -0.000516546361f, 0.000336795070f, 0.000353695035f, 0.000423811434f, -0.000122424653f, 0.000312519928f, 0.000255991900f, -0.000001942555f, 0.000324267280f, 0.000428826288f, 0.000546570040f, 0.000503009719f, 0.001273471822f, 0.001519600196f, 0.001726975142f, 0.002314287826f, 0.003035080634f, 0.003684551536f, 0.004152722071f, 0.005116634614f, 0.005758705797f, 0.006710759416f, 0.007509376630f, 0.008722159893f, 0.009658022158f, 0.010743150205f, 0.011803128134f, 0.012955366571f, 0.014185755309f, 0.015512798985f, 0.016916054410f, 0.018391417189f, 0.019941500261f, 0.021570909644f, 0.023281708231f }
-// };
 
 const float gpc_gaussian_smoothing_weights[GPC_GAUSSIAN_SMOOTHING_WINDOW] = {
     0.134926224710375f,   0.196316498560442f,   0.222455736655261f,   0.196316498560442f,   0.134926224710375f,   0.072220803783150f, 0.030106110127849f,   0.009774022935568f,   0.002471260008415f,   0.000486619948122f
@@ -210,14 +180,36 @@ public:
     virtual ~LinearModelNoYuDiff() {}
 
 protected:
-    //void read_u(T t_array[], const size_t n) override; // take last n of u elements, gaussian smoothed
-    //void read_y(T t_array[], const size_t n) override; // take last n of y elements, gaussian smoothed
+    void read_u(T t_array[], const size_t n) override; // take last n of u elements, gaussian smoothed
+    void read_y(T t_array[], const size_t n) override; // take last n of y elements, gaussian smoothed
     void fill_current_state() override;
     void read_and_smooth(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]);
 
     uint8_t gaussian_smoothing_window;
     uint8_t real_y_steps;
     uint8_t real_u_steps;
+};
+
+// ----------------------------------------------------------------------------------
+
+template<typename T>
+class LinearModelNoYwideD1MultiAttention : virtual public LinearModelBase<T>
+{
+public:
+    LinearModelNoYwideD1MultiAttention(const uint8_t _y_diffs, const uint8_t _u_window, DebugLogger *logger): 
+        LinearModelBase<T>((1 << _y_diffs)+1, _u_window, logger),
+        y_diffs(_y_diffs),
+        u_window(_u_window)
+    {        
+    }
+
+    virtual ~LinearModelNoYwideD1MultiAttention() {}
+
+protected:
+    void fill_current_state() override;
+
+    uint8_t y_diffs;
+    uint8_t u_window;
 };
 
 // implementation ------------------------------------------------------------------
@@ -373,19 +365,19 @@ void LinearModelNoYuDiff<T>::fill_current_state()
     this->fill_dy_chain(GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U, GPC_LINEAR_MODEL_DY);
 }
 
-// template<typename T>
-// void LinearModelNoYuDiff<T>::read_u(T t_array[], const size_t n) 
-// {
-//     // use gaussian smoothing for u
-//     read_and_smooth(this->u, t_array, n, defines::gpc::gpc_gaussian_smoothing_weights);
-// }
+template<typename T>
+void LinearModelNoYuDiff<T>::read_u(T t_array[], const size_t n) 
+{
+    // use gaussian smoothing for u
+    read_and_smooth(this->u, t_array, n, defines::gpc::gpc_gaussian_smoothing_weights);
+}
 
-// template<typename T>
-// void LinearModelNoYuDiff<T>::read_y(T t_array[], const size_t n) 
-// {
-//     // use gaussian smoothing for y
-//     read_and_smooth(this->y, t_array, n, defines::gpc::gpc_gaussian_smoothing_weights);
-// }
+template<typename T>
+void LinearModelNoYuDiff<T>::read_y(T t_array[], const size_t n) 
+{
+    // use gaussian smoothing for y
+    read_and_smooth(this->y, t_array, n, defines::gpc::gpc_gaussian_smoothing_weights);
+}
 
 template<typename T>
 void LinearModelNoYuDiff<T>::read_and_smooth(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]) 
@@ -400,6 +392,34 @@ void LinearModelNoYuDiff<T>::read_and_smooth(const CircularBuffer<T> *c, T buff[
         for (size_t j=0; j<GPC_GAUSSIAN_SMOOTHING_WINDOW; j++) {
             buff[k] += gaussian_weights[j] * raw_data[i-j];
         }
+    }
+}
+
+template<typename T>
+void LinearModelNoYwideD1MultiAttention<T>::fill_current_state() 
+{
+    GPC_DEBUG_LOG_INIT;
+
+    if (!this->ready()) {
+        return;
+    }
+
+    this->fill_u(0, this->u_window);
+
+    // fill sum of u 
+    T u_sum = T();
+    for (size_t i=0; i<this->u_window; i++) {
+        u_sum += this->state[0][i];
+    }
+
+    this->state[0][this->u_window] = normalize_u(u_sum);
+
+    // fill y diffs in increasing steps
+    T yy[this->y_steps];
+    this->read_y(yy, this->y_steps);
+    const T last_y = yy[this->y_steps - 1];
+    for (size_t i=0; i<this->y_diffs; i++) {
+        this->state[0][this->u_window + 1 + i] = normalize_dy(last_y - yy[this->y_steps - 1 - (1 << (i+1))], 1);
     }
 }
 
