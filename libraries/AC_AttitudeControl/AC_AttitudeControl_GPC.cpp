@@ -6,8 +6,8 @@ AC_AttitudeControl_GPC::AC_AttitudeControl_GPC(GCS &gcs):
 {
     GPC_Params<float> params;
     params.lambda = GPC_lambda;
-    params.min_u = -0.7f;
-    params.max_u = 0.7f;
+    params.min_u = -0.41f;
+    params.max_u = 0.41f;
 
     _gpc_pitch_controller = new GPC_Controller<float, GPC_N, GPC_Nu>(
         params, 
@@ -36,7 +36,11 @@ void AC_AttitudeControl_GPC::set_lambda(const float lambda)
 
 void AC_AttitudeControl_GPC::rate_controller_run(const float roll, const float target_roll, const float pitch, const float target_pitch, const float yaw, const float target_yaw) 
 {
-    _gpc_pitch_controller->run_step(pitch, target_pitch);
+    GPC_DEBUG_LOG_INIT;
+
+    if (c % 2 == 0) {
+        _gpc_pitch_controller->run_step(pitch, target_pitch);
+    }
 }
 
 

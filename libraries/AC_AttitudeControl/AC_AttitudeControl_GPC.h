@@ -133,7 +133,7 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
     MatrixNxM<T, Nu, 1> duk = K * y_target;
 
     // constraints
-    T next_u = _current_u + duk[0][0];
+    T next_u = _current_u + constrain_float(duk[0][0], -GPC_MAX_duk, GPC_MAX_duk);
     if (log05Hz) GPC_DEBUG_LOG("GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", y, target_y, dk, next_u);
     if (next_u > _gpc_params.max_u) next_u = _gpc_params.max_u;
     if (next_u < _gpc_params.min_u) next_u = _gpc_params.min_u;
