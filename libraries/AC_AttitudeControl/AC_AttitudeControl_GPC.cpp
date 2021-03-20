@@ -1,5 +1,6 @@
 #include "AC_AttitudeControl_GPC.h"
 
+#ifndef GPC_DEBUG
 
 AC_AttitudeControl_GPC::AC_AttitudeControl_GPC(GCS &gcs):   
     DebugLogger(gcs)
@@ -38,9 +39,11 @@ void AC_AttitudeControl_GPC::rate_controller_run(const float roll, const float t
 {
     GPC_DEBUG_LOG_INIT;
 
-    if (c % 2 == 0) {
+    //if (c % 2 == 0) {
         _gpc_pitch_controller->run_step(pitch, target_pitch);
-    }
+    //}
 }
+
+#endif
 
 

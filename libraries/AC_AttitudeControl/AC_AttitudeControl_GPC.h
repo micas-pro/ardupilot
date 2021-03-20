@@ -1,15 +1,19 @@
 #pragma once
 
+#ifndef GPC_DEBUG
 #include "AC_AttitudeControl.h"
 #include <AP_Math/AP_Math.h>
+#include <AP_AHRS/AP_AHRS.h>
+#include <GCS_MAVLink/GCS.h>
+#include <AP_HAL/system.h>
+#endif
+
 #include <AP_Math/matrixNxM.h>
 #include <AP_Math/circular_buffer.h>
 #include "AC_AttitudeControl_GPC_defines.h"
-#include <AP_AHRS/AP_AHRS.h>
-#include <GCS_MAVLink/GCS.h>
 #include "AC_GPC_Helpers.h"
 #include "AC_GPC_LinearModels.h"
-#include <AP_HAL/system.h>
+
 
 template <typename T = float>
 struct GPC_Params
@@ -51,6 +55,8 @@ private:
     MatrixNxM<T, Nu, N> K;
 };
 
+#ifndef GPC_DEBUG
+
 class AC_AttitudeControl_GPC : public DebugLogger
 {
 public:
@@ -66,6 +72,8 @@ public:
 private:    
     GPC_Controller<float, GPC_N, GPC_Nu> *_gpc_pitch_controller;
 };
+
+#endif
 
 // templates implementation ----------------------------------------------------
 
@@ -91,10 +99,12 @@ template<typename T, uint8_t N, uint8_t Nu>
 const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y) 
 {    
     GPC_DEBUG_LOG_INIT;
-    uint64_t start_time = 0;
 
     const bool log05Hz = _GPC_DEBUG_LOG_05HZ;
+#ifndef GPC_DEBUG    
+    uint64_t start_time = 0;
     if (log05Hz) start_time = AP_HAL::micros64();
+#endif
 
     // prediction
     const T predicted_y = _model->predict_one_step(_current_u, T());    
@@ -134,16 +144,22 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
 
     // constraints
     T next_u = _current_u + constrain_float(duk[0][0], -GPC_MAX_duk, GPC_MAX_duk);
+#ifdef GPC_DEBUG
+    GPC_DEBUG_LOG("%u GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", c, y, target_y, dk, next_u);
+#else
     if (log05Hz) GPC_DEBUG_LOG("GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", y, target_y, dk, next_u);
+#endif
     if (next_u > _gpc_params.max_u) next_u = _gpc_params.max_u;
     if (next_u < _gpc_params.min_u) next_u = _gpc_params.min_u;
 
     _current_u = next_u;
 
+#ifndef GPC_DEBUG
     if (log05Hz) {
         start_time = AP_HAL::micros64() - start_time;
         GPC_DEBUG_LOG("GPC time: %llu us", start_time);
     }
+#endif
 
     return _current_u;
 }

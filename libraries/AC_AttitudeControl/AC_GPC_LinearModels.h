@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AC_GPC_Helpers.h"
-#include <AP_Math/AP_Math.h>
+//#include <AP_Math/AP_Math.h>
 #include <AP_Math/matrixNxM.h>
 #include <AP_Math/circular_buffer.h>
 
@@ -137,6 +137,7 @@ public:
 protected:
 
     void fill_u(const size_t pos_in_state, const uint8_t n);
+    T fill_u_and_get_u_sum(const size_t pos_in_state, const uint8_t n);
     void fill_y(const size_t pos_in_state);
     void fill_dy_chain(const size_t pos_in_state, const uint8_t n);
     void fill_d1u(const size_t pos_in_state, const uint8_t n);
@@ -240,6 +241,20 @@ void LinearModelBase<T>::fill_u(const size_t pos_in_state, const uint8_t n)
     for (size_t i=0;i<n;i++) {
         this->state[0][pos_in_state + i] = normalize_u(buff[i]);
     }
+}
+
+template<typename T>
+T LinearModelBase<T>::fill_u_and_get_u_sum(const size_t pos_in_state, const uint8_t n) 
+{
+    T buff[n];
+    read_u(buff, n);
+    T sum = T();
+    for (size_t i=0;i<n;i++) {
+        sum += buff[i];
+        this->state[0][pos_in_state + i] = normalize_u(buff[i]);
+    }
+
+    return sum;
 }
 
 template<typename T>
@@ -410,14 +425,10 @@ void LinearModelNoYwideD1MultiAttention<T>::fill_current_state()
         return;
     }
 
-    this->fill_u(0, this->u_window);
+    // fill u
+    T u_sum = this->fill_u_and_get_u_sum(0, this->u_window);
 
     // fill sum of u 
-    T u_sum = T();
-    for (size_t i=0; i<this->u_window; i++) {
-        u_sum += this->state[0][i];
-    }
-
     this->state[0][this->u_window] = normalize_u(u_sum);
 
     // fill y diffs in increasing steps

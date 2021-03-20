@@ -1,8 +1,9 @@
 #pragma once
-#pragma GCC optimize("O2")
+//#pragma GCC optimize("O2")
 
 #include "math.h"
 #include <stdint.h>
+#include <string.h>
 
 
 template<typename T, uint8_t N, uint8_t M>

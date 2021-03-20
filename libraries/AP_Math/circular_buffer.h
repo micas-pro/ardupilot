@@ -48,7 +48,7 @@ public:
     {
         size_t nn = n;
         typename deque<T>::const_reverse_iterator it = _q.rbegin();
-        for (size_t i = 0; it != _q.rend() && nn-- > 0; it++, i++) {
+        for (size_t i = n-1; it != _q.rend() && nn-- > 0; it++, i--) {
             buff[i] = *it;
         }
     }

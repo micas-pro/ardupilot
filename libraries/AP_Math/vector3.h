@@ -60,7 +60,7 @@ template <typename T>
 class Matrix3;
 
 template <typename T>
-class Vector3
+class   Vector3
 {
 
 public:
