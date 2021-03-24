@@ -72,8 +72,8 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Lin
     vector<float> gpc_u;
     gpc_u.resize(data.size());
 
-    const int sim_start = 7200;
-    const int sim_end = sim_start + 2000;
+    const int sim_start = 100;
+    const int sim_end = sim_start + 20;
 
     // simulated model, preloaded with real y and u = 0
     LinearModelNoYwideD1MultiAttention<float> model(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U_SUM_WINDOW, &logger);
@@ -88,8 +88,9 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Lin
 
     for (int i=sim_start;i<sim_end;i++) {
         const float my = model.predict_one_step(gpc->get_current_u(), 0.0f);
-        logger.debug_msg("%u: y=%.3f ty=%.3f cu=%.3f", i, my, data[i].y_target, gpc->get_current_u());
+        const float cu = gpc->get_current_u();        
         gpc_u[i] = gpc->run_step(my, data[i].y_target);
+        logger.debug_msg("%u: y=%.3f ty=%.3f cu=%.3f next_u=%.3f", i, my, data[i].y_target, cu, gpc_u[i]);
     }
 }
 

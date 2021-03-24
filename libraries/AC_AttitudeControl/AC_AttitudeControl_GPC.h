@@ -14,6 +14,10 @@
 #include "AC_GPC_Helpers.h"
 #include "AC_GPC_LinearModels.h"
 
+#define DEBUG_DATA_COUNT        5
+static const float debug_data_u[DEBUG_DATA_COUNT] = {};
+static const float debug_data_y[DEBUG_DATA_COUNT] = {};
+
 
 template <typename T = float>
 struct GPC_Params
@@ -145,7 +149,7 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
     // constraints
     T next_u = _current_u + constrain_float(duk[0][0], -GPC_MAX_duk, GPC_MAX_duk);
 #ifdef GPC_DEBUG
-    GPC_DEBUG_LOG("%u GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", c, y, target_y, dk, next_u);
+    //GPC_DEBUG_LOG("%u GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", c, y, target_y, dk, next_u);
 #else
     if (log05Hz) GPC_DEBUG_LOG("GPC y=%.2f ty=%.2f dk=%.2f u=%.2f", y, target_y, dk, next_u);
 #endif
