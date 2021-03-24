@@ -63,7 +63,7 @@ vector<UY> read_csv_data(const string &filename)
     return result;
 }
 
-void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, LinearModelNoYwideD1MultiAttention<float> *gpc_linear_model)
+void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, LinearModelBase<float> *gpc_linear_model)
 {
     logger.debug_msg("Loading data from: %s", filename.c_str());
     auto data = read_csv_data(filename);
@@ -73,10 +73,10 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Lin
     gpc_u.resize(data.size());
 
     const int sim_start = 100;
-    const int sim_end = sim_start + 20;
+    const int sim_end = sim_start + 200;
 
     // simulated model, preloaded with real y and u = 0
-    LinearModelNoYwideD1MultiAttention<float> model(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U_SUM_WINDOW, &logger);
+    DifferenceEquationModel<float> model(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, &logger);
     model.load_weights(defines::gpc::linear_model_w);
     for (int i=50;i>=1;i--) {
         model.predict_one_step(0.0f, 0.0f);
@@ -111,8 +111,8 @@ int main(int argc, char* argv[]) {
     params.min_u = -0.41f;
     params.max_u = 0.41f;
 
-    auto linear_model = new LinearModelNoYwideD1MultiAttention<float>(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U_SUM_WINDOW, &logger);
-    auto y0_linear_model = new LinearModelNoYwideD1MultiAttention<float>(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U_SUM_WINDOW, &logger);
+    auto linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, &logger);
+    auto y0_linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, &logger);
     GPC_Controller<float, GPC_N, GPC_Nu> *gpc_pitch_controller = new GPC_Controller<float, GPC_N, GPC_Nu>(
         params, 
         linear_model, 

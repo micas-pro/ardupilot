@@ -12,8 +12,8 @@ AC_AttitudeControl_GPC::AC_AttitudeControl_GPC(GCS &gcs):
 
     _gpc_pitch_controller = new GPC_Controller<float, GPC_N, GPC_Nu>(
         params, 
-        new LinearModelNoYwideD1MultiAttention<float>(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U_SUM_WINDOW, this), 
-        new LinearModelNoYwideD1MultiAttention<float>(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U_SUM_WINDOW, this),
+        new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, this), 
+        new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, this), 
         this
     );
 
