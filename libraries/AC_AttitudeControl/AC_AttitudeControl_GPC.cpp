@@ -12,8 +12,8 @@ AC_AttitudeControl_GPC::AC_AttitudeControl_GPC(GCS &gcs):
 
     _gpc_pitch_controller = new GPC_Controller<float, GPC_N, GPC_Nu>(
         params, 
-        new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, this), 
-        new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, this), 
+        new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, this), 
+        new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, this), 
         this
     );
 
@@ -35,12 +35,12 @@ void AC_AttitudeControl_GPC::set_lambda(const float lambda)
     _gpc_pitch_controller->set_lambda(lambda);
 }
 
-void AC_AttitudeControl_GPC::rate_controller_run(const float roll, const float target_roll, const float pitch, const float target_pitch, const float yaw, const float target_yaw) 
+void AC_AttitudeControl_GPC::rate_controller_run(const float roll, const float target_roll, const float pitch, const float target_pitch, const float yaw, const float target_yaw, const float throttle) 
 {
     GPC_DEBUG_LOG_INIT;
 
     //if (c % 2 == 0) {
-        _gpc_pitch_controller->run_step(pitch, target_pitch);
+        _gpc_pitch_controller->run_step(pitch, target_pitch, throttle);
     //}
 }
 

@@ -339,7 +339,8 @@ void AC_AttitudeControl_Multi::rate_controller_run()
     targets.z = wrap_360_cd(targets.z);
     _secondary_controller.rate_controller_run(0.0f, 0.0f,
                                               degrees(ahrs.get_pitch()), targets.y / 100.0f,
-                                              0.0f, 0.0f);
+                                              0.0f, 0.0f,
+                                              _motors.get_throttle());
 
     //const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch() + (1.0f - _secondary_controller_weight) * pid_pitch, -1.0f, 1.0f);
     const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch(), -1.0f, 1.0f);

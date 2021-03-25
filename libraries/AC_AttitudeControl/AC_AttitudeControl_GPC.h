@@ -48,10 +48,12 @@ public:
 
     void initialize();
     void set_lambda(const T &lambda);
-    const T run_step(const T &y, const T &target_y);
+    const T run_step(const T &y, const T &target_y, const T &throttle);
     const T get_current_u() { return _current_u; }
 
 private:
+    T transform_u(const T &u, const T &throttle);
+
     DebugLogger *_logger;
     GPC_Params<T> _gpc_params;
     LinearModelBase<T> *_model, *_y0_model;
@@ -71,7 +73,7 @@ public:
 
     float get_pitch();
     void set_lambda(const float lambda);
-    void rate_controller_run(const float roll, const float target_roll, const float pitch, const float target_pitch, const float yaw, const float target_yaw);
+    void rate_controller_run(const float roll, const float target_roll, const float pitch, const float target_pitch, const float yaw, const float target_yaw, const float throttle);
 
 private:    
     GPC_Controller<float, GPC_N, GPC_Nu> *_gpc_pitch_controller;
@@ -100,7 +102,13 @@ void GPC_Controller<T, N, Nu>::set_lambda(const T &lambda)
 }
 
 template<typename T, uint8_t N, uint8_t Nu>
-const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y) 
+T GPC_Controller<T, N, Nu>::transform_u(const T &u, const T &throttle)
+{
+    return (0.001168222604331f + 0.000575672724742 * throttle) * u / 0.001168222604331f;
+}
+
+template<typename T, uint8_t N, uint8_t Nu>
+const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const T &throttle) 
 {    
     GPC_DEBUG_LOG_INIT;
 
@@ -111,7 +119,7 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
 #endif
 
     // prediction
-    const T predicted_y = _model->predict_one_step(_current_u, T());    
+    const T predicted_y = _model->predict_one_step(transform_u(_current_u, throttle), T());    
     //GPC_DEBUG_LOG_1HZ("GPC py=%.2f", predicted_y);
 
     // adjust model to current measurement
@@ -132,7 +140,7 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y)
     MatrixNxM<T, N, 1> y_target(target_y);
     _y0_model->reset_to(*_model);
     for (uint8_t i=0;i<N;i++) {
-        y0k[i][0] = _y0_model->predict_one_step(_current_u, dk);
+        y0k[i][0] = _y0_model->predict_one_step(transform_u(_current_u, throttle), dk);
     }
 
     // GPC_DEBUG_LOG_05HZ("----Y0-----", NULL);
