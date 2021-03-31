@@ -72,25 +72,45 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Lin
     vector<float> gpc_u;
     gpc_u.resize(data.size());
 
-    const int sim_start = 100;
-    const int sim_end = sim_start + 200;
+    const int sim_start = 5000-8;
+    const int sim_end = sim_start + 2000;
 
     // simulated model, preloaded with real y and u = 0
-    DifferenceEquationModel<float> model(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, &logger);
+    DifferenceEquationModel<float> model(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
     model.load_weights(defines::gpc::linear_model_w);
+    CircularBuffer<float> smoothed_y(GPC_LOWPASS_SMOOTHING_WINDOW + 5);
+    
+    float _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW];
+    const float n = (GPC_LOWPASS_SMOOTHING_WINDOW-1)*0.9f + 1.1f;
+    for (size_t i=0;i<GPC_LOWPASS_SMOOTHING_WINDOW-1;i++) {
+        _low_pass_smoothing_weights[i] = 0.9f / n;
+    }
+
+    _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW-1] = 1.1f / n;
+
     for (int i=50;i>=1;i--) {
+        if (!smoothed_y.ready()) {
+            smoothed_y.add(data[sim_start-i].y);
+        } else {
+            smoothed_y.add(get_lowpass_smoothed(&smoothed_y, data[sim_start-i].y, GPC_LOWPASS_SMOOTHING_WINDOW, _low_pass_smoothing_weights));
+        }
+
         model.predict_one_step(0.0f, 0.0f);
-        model.measured_y(data[sim_start-i].y);
+        model.measured_y(smoothed_y.get_last_item());
 
         gpc_linear_model->predict_one_step(0.0f, 0.0f);
-        gpc_linear_model->measured_y(data[sim_start-i].y);
+        gpc_linear_model->measured_y(smoothed_y.get_last_item());
     }
 
     for (int i=sim_start;i<sim_end;i++) {
         const float my = model.predict_one_step(gpc->get_current_u(), 0.0f);
         const float cu = gpc->get_current_u();        
-        gpc_u[i] = gpc->run_step(my, data[i].y_target);
-        logger.debug_msg("%u: y=%.3f ty=%.3f cu=%.3f next_u=%.3f", i, my, data[i].y_target, cu, gpc_u[i]);
+        gpc_u[i] = gpc->run_step(my, data[i].y_target, 0.5f);
+        if (fabs(gpc_u[i]) < 0.0001f) {
+            gpc_u[i] = data[i].u;
+        } else {
+            logger.debug_msg("%u: y=%.3f ty=%.3f cu=%.3f next_u=%.3f", i, my, data[i].y_target, cu, gpc_u[i]);
+        }
     }
 }
 
@@ -111,8 +131,8 @@ int main(int argc, char* argv[]) {
     params.min_u = -0.41f;
     params.max_u = 0.41f;
 
-    auto linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, &logger);
-    auto y0_linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, &logger);
+    auto linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
+    auto y0_linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
     GPC_Controller<float, GPC_N, GPC_Nu> *gpc_pitch_controller = new GPC_Controller<float, GPC_N, GPC_Nu>(
         params, 
         linear_model, 

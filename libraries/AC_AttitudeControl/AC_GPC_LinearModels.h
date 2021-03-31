@@ -18,14 +18,17 @@
 #endif
 //#define GPC_LINEAR_MODEL_WEIGHTS                (GPC_LINEAR_MODEL_Y + GPC_LINEAR_MODEL_DY + GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U)
 #define GPC_LINEAR_MODEL_WEIGHTS                (GPC_LINEAR_MODEL_Y + GPC_LINEAR_MODEL_DY + GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U + GPC_LINEAR_MODEL_U_SUM_WINDOW + GPC_LINEAR_MODEL_U_SUM_USED)
-#define GPC_LINEAR_MODEL_AN                     1
-#define GPC_LINEAR_MODEL_BN                     1
-#define GPC_LINEAR_MODEL_UDELAY                 18
-#define GPC_Nu                                  5
-#define GPC_N                                   40
+#define GPC_LINEAR_MODEL_AN                     2
+#define GPC_LINEAR_MODEL_BN                     2
+#define GPC_LINEAR_MODEL_UDELAY                 15
+
+#define GPC_N                                   30
+#define GPC_Nu                                  10
 #define GPC_lambda                              1.000f
+
 #define GPC_MAX_duk                             0.4f
 #define GPC_GAUSSIAN_SMOOTHING_WINDOW           10
+#define GPC_LOWPASS_SMOOTHING_WINDOW            7
 
 namespace defines {
 
@@ -93,15 +96,20 @@ const float normalization_d1u[2] = { 0.0f, 0.0f };
 //     -0.083815030754f
 // };
 
-const float linear_model_w[GPC_LINEAR_MODEL_AN + GPC_LINEAR_MODEL_BN] = { 0.999695386209530f,   0.003797495125387f };
+const float linear_model_w[GPC_LINEAR_MODEL_AN + GPC_LINEAR_MODEL_BN] = { 1.393158126378344f,  -0.393346437291313f,   0.000978736065689f,   0.012937070114930f };
 
-// N = 40, Nu = 5, lambda = 1, udelay = 18
+// N = 30, Nu = 10, lambda = 1, udelay = 15
 const float gpc_K[GPC_Nu][GPC_N] = {
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.003055366239f, 0.008029785244f, 0.013941983708f, 0.019952288154f, 0.025349337231f, 0.030133317747f, 0.034304416450f, 0.037862820032f, 0.040808715129f, 0.043142288319f, 0.044863726124f, 0.045973215008f, 0.046470941381f, 0.046357091593f, 0.045631851939f, 0.044295408656f, 0.042347947926f, 0.039789655873f, 0.036620718564f, 0.032841322011f, 0.028451652168f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.001135382766f, -0.000050158270f, 0.002374948657f, 0.005373715396f, 0.008285419375f, 0.011110087113f, 0.013847745124f, 0.016498419912f, 0.019062137973f, 0.021538925795f, 0.023928809859f, 0.026231816636f, 0.028447972591f, 0.030577304179f, 0.032619837849f, 0.034575600039f, 0.036444617183f, 0.038226915704f, 0.039922522017f, 0.041531462530f, 0.043053763643f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000980688738f, -0.003821815886f, -0.004948598675f, -0.005056145255f, -0.004754624402f, -0.004044160721f, -0.002924878783f, -0.001396903120f, 0.000539641775f, 0.002884631446f, 0.005637941474f, 0.008799447481f, 0.012369025124f, 0.016346550098f, 0.020731898137f, 0.025524945013f, 0.030725566536f, 0.036333638551f, 0.042349036944f, 0.048771637638f, 0.055601316594f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000839387815f, -0.003283722229f, -0.008027100291f, -0.011335650453f, -0.013769086214f, -0.015327674146f, -0.016011680740f, -0.015821372405f, -0.014757015469f, -0.012818876180f, -0.010007220704f, -0.006322315126f, -0.001764425450f, 0.003666182401f, 0.009969242584f, 0.017144489340f, 0.025191656988f, 0.034110479928f, 0.043900692643f, 0.054562029695f, 0.066094225728f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000711331466f, -0.002794325545f, -0.006858422709f, -0.013462295918f, -0.018755136771f, -0.022737344627f, -0.025409318723f, -0.026771458174f, -0.026824161974f, -0.025567828995f, -0.023002857987f, -0.019129647579f, -0.013948596280f, -0.007460102476f, 0.000335435568f, 0.009437619708f, 0.019846051923f, 0.031560334310f, 0.044580069091f, 0.058904858605f, 0.074534305316f }
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000581088329f, 0.009351513757f, 0.025102215983f, 0.044294746544f, 0.063401743379f, 0.079627326636f, 0.091007593208f, 0.096289995752f, 0.094752535212f, 0.086028377807f, 0.069961165894f, 0.046490779530f, 0.015594964847f, -0.022733633345f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000301117582f, -0.004263991355f, -0.003643073836f, 0.002180514217f, 0.011467714723f, 0.022090206116f, 0.032203318220f, 0.040414808703f, 0.045764079851f, 0.047638323335f, 0.045681145715f, 0.039753082398f, 0.029800023248f, 0.015801442182f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000219981413f, -0.003841915222f, -0.013776732597f, -0.020436617713f, -0.021849408264f, -0.018663467586f, -0.012220048770f, -0.003838523648f, 0.005416769921f, 0.014778094972f, 0.023748614741f, 0.032132973850f, 0.039854440338f, 0.046882956791f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000153809379f, -0.002697034757f, -0.010514748069f, -0.025571747364f, -0.037291123793f, -0.042862161871f, -0.042280932883f, -0.036402275202f, -0.026189482629f, -0.012446936414f, 0.004258279826f, 0.023702547869f, 0.045797392489f, 0.070507513140f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000101803961f, -0.001794821516f, -0.007137443987f, -0.018380067758f, -0.036785517695f, -0.051138115923f, -0.058082974221f, -0.057162887032f, -0.048857227928f, -0.033819329974f, -0.012589306901f, 0.014619223436f, 0.047721109394f, 0.086681747096f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000062761676f, -0.001115110534f, -0.004558308457f, -0.012050180779f, -0.025356501897f, -0.045254535894f, -0.060069948549f, -0.066024544808f, -0.062276531699f, -0.048963151105f, -0.026431206947f, 0.005181150733f, 0.045817871166f, 0.095455207595f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000035103717f, -0.000631292409f, -0.002689006525f, -0.007375311810f, -0.016020526158f, -0.030018996310f, -0.049757448921f, -0.063168294356f, -0.066091688319f, -0.057330201154f, -0.036693864747f, -0.004110191980f, 0.040447079883f, 0.096986026435f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000016959645f, -0.000311693393f, -0.001422227910f, -0.004124801842f, -0.009367028595f, -0.018191536389f, -0.031658744918f, -0.049795782217f, -0.060170189827f, -0.058272291418f, -0.042578271303f, -0.012491339973f, 0.032220537260f, 0.091645876376f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000006287355f, -0.000121593597f, -0.000638312821f, -0.002036256781f, -0.004943177216f, -0.010081401683f, -0.018210603155f, -0.030072057725f, -0.045359894675f, -0.051316951669f, -0.043128727642f, -0.018904119462f, 0.022097711722f, 0.080165012902f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000001015136f, -0.000025638692f, -0.000213494670f, -0.000833217925f, -0.002261735831f, -0.004951035508f, -0.009390781076f, -0.016070829034f, -0.025446440555f, -0.036930281128f, -0.037500679504f, -0.022037662812f, 0.011469672771f, 0.063808911156f }
 };
 
 const float gpc_gaussian_smoothing_weights[GPC_GAUSSIAN_SMOOTHING_WINDOW] = {
@@ -123,6 +131,40 @@ float normalize_d1u(const float d1u);
 void calculate_diffs(float *diffs, const size_t &n);
 
 float denormalize_d1y(const float d1y);
+
+template<typename T>
+T get_lowpass_smoothed(const CircularBuffer<T> *smoothed, const T &x, const size_t window_size, const float weights[]) 
+{
+    T data[window_size + 1];
+    smoothed->get_last_n_items(data, window_size);
+    const T last_smoothed_y = data[window_size - 1];
+    data[window_size] = x;
+
+    calculate_diffs(data, window_size);
+
+    T u = T();
+    for (size_t i=0; i<window_size; i++) {
+        u += weights[i] * data[i];
+    }
+
+    return last_smoothed_y + u;
+}
+
+template<typename T>
+void read_and_smooth_gaussian(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]) 
+{
+    for (size_t i=0; i<n; i++) {
+        buff[i] = T();
+    }
+
+    T raw_data[n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1];
+    c->get_last_n_items(raw_data, n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1);
+    for (size_t k=0, i=GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i<n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i++, k++) {
+        for (size_t j=0; j<GPC_GAUSSIAN_SMOOTHING_WINDOW; j++) {
+            buff[k] += gaussian_weights[j] * raw_data[i-j];
+        }
+    }
+}
 
 // classes ------------------------------------------------------------------------------
 
@@ -154,10 +196,11 @@ public:
     void reset_to(const LinearModelBase &model);
     bool ready();
 
+    virtual void read_u(T t_array[], const size_t n); // take last n of u elements
+    virtual void read_y(T t_array[], const size_t n); // take last n of y elements
+
 protected:
 
-    virtual void read_u(T t_array[], const size_t n); // take last n of u elements
-    virtual void read_y(T t_array[], const size_t n); // take last n of y elements 
     T check_and_denormalize_dy(const T &dy);   
 
     virtual T predict_next_dy() = 0;
@@ -192,9 +235,7 @@ public:
 
 protected:
 
-    virtual void read_y(T t_array[], const size_t n) override; // take last n of y elements, gaussian smoothed
     virtual T predict_next_dy() override;
-    void read_and_smooth(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]);
 
     uint8_t an, bn, udelay;
 
@@ -262,11 +303,12 @@ public:
 
     virtual ~LinearModelNoYuDiff() {}
 
-protected:
     void read_u(T t_array[], const size_t n) override; // take last n of u elements, gaussian smoothed
     void read_y(T t_array[], const size_t n) override; // take last n of y elements, gaussian smoothed
+
+protected:
+    
     void fill_current_state() override;
-    void read_and_smooth(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]);
 
     uint8_t gaussian_smoothing_window;
     uint8_t real_y_steps;
@@ -493,22 +535,6 @@ void LinearModelNoYuDiff<T>::read_y(T t_array[], const size_t n)
 }
 
 template<typename T>
-void LinearModelNoYuDiff<T>::read_and_smooth(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]) 
-{
-    for (size_t i=0; i<n; i++) {
-        buff[i] = T();
-    }
-
-    T raw_data[n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1];
-    c->get_last_n_items(raw_data, n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1);
-    for (size_t k=0, i=GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i<n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i++, k++) {
-        for (size_t j=0; j<GPC_GAUSSIAN_SMOOTHING_WINDOW; j++) {
-            buff[k] += gaussian_weights[j] * raw_data[i-j];
-        }
-    }
-}
-
-template<typename T>
 void LinearModelNoYwideD1MultiAttention<T>::fill_current_state() 
 {
     GPC_DEBUG_LOG_INIT;
@@ -548,8 +574,9 @@ void DifferenceEquationModel<T>::load_weights(const T w[])
 template<typename T>
 T DifferenceEquationModel<T>::predict_next_dy() 
 {
-    T cu[this->bn + this->udelay];
-    this->read_u(cu, this->bn + this->udelay);
+    const size_t u_elements = this->bn + this->udelay;
+    T cu[u_elements];
+    this->read_u(cu, u_elements);
 
     T cy[this->an + 1];
     this->read_y(cy, this->an + 1);
@@ -562,33 +589,11 @@ T DifferenceEquationModel<T>::predict_next_dy()
     }
 
     for (size_t i=0;i<this->bn;i++) {
-        dy += b[i]*cu[this->bn-i-1-this->udelay];
+        dy += b[i]*cu[u_elements - 1 - i - this->udelay];
     }
 
     // check for NaN and Inf and denormalize dy 
     return this->check_and_denormalize_dy(dy);
 }
 
-template<typename T>
-void DifferenceEquationModel<T>::read_y(T t_array[], const size_t n) 
-{
-    // use gaussian smoothing for y
-    read_and_smooth(this->y, t_array, n, defines::gpc::gpc_gaussian_smoothing_weights);
-}
-
-template<typename T>
-void DifferenceEquationModel<T>::read_and_smooth(const CircularBuffer<T> *c, T buff[], const size_t n, const float gaussian_weights[]) 
-{
-    for (size_t i=0; i<n; i++) {
-        buff[i] = T();
-    }
-
-    T raw_data[n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1];
-    c->get_last_n_items(raw_data, n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1);
-    for (size_t k=0, i=GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i<n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i++, k++) {
-        for (size_t j=0; j<GPC_GAUSSIAN_SMOOTHING_WINDOW; j++) {
-            buff[k] += gaussian_weights[j] * raw_data[i-j];
-        }
-    }
-}
 

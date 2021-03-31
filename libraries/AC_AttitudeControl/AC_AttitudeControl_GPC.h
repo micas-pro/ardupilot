@@ -35,7 +35,8 @@ public:
         : _gpc_params(gpc_params),
         _model(model),
         _y0_model(y0_model),
-        _logger(logger)
+        _logger(logger),
+        _y(CircularBuffer<T>(GPC_LOWPASS_SMOOTHING_WINDOW + 1))
     {
         _current_u = T();
     }
@@ -59,6 +60,27 @@ private:
     LinearModelBase<T> *_model, *_y0_model;
     T _current_u;
     MatrixNxM<T, Nu, N> K;
+    CircularBuffer<T> _y;
+    T _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW];
+};
+
+class SwitchingController
+{
+public:
+    SwitchingController(DebugLogger *logger);
+    virtual ~SwitchingController() {}
+
+    void initialize();
+    float run_step(const float &y, const float &target_y, const float &throttle);
+    float get_current_u() { return _current_u; }
+
+private:
+
+    void read_and_smooth(const CircularBuffer<float> *c, float buff[], const size_t n, const float gaussian_weights[]);
+
+    float _current_u;
+    DebugLogger *_logger;
+    CircularBuffer<float> _y;
 };
 
 #ifndef GPC_DEBUG
@@ -77,6 +99,7 @@ public:
 
 private:    
     GPC_Controller<float, GPC_N, GPC_Nu> *_gpc_pitch_controller;
+    SwitchingController *_switching_controller;
 };
 
 #endif
@@ -93,6 +116,13 @@ void GPC_Controller<T, N, Nu>::initialize()
     for (uint8_t i=0;i<GPC_Nu;i++)
         for (uint8_t j=0;j<GPC_N;j++)
             K[i][j] = defines::gpc::gpc_K[i][j];
+
+    const T n = (GPC_LOWPASS_SMOOTHING_WINDOW-1)*0.9f + 1.1f;
+    for (size_t i=0;i<GPC_LOWPASS_SMOOTHING_WINDOW-1;i++) {
+        _low_pass_smoothing_weights[i] = 0.9f / n;
+    }
+
+    _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW-1] = 1.1f / n;
 }
 
 template<typename T, uint8_t N, uint8_t Nu>
@@ -104,7 +134,8 @@ void GPC_Controller<T, N, Nu>::set_lambda(const T &lambda)
 template<typename T, uint8_t N, uint8_t Nu>
 T GPC_Controller<T, N, Nu>::transform_u(const T &u, const T &throttle)
 {
-    return (0.001168222604331f + 0.000575672724742 * throttle) * u / 0.001168222604331f;
+    //return (0.001168222604331f + 0.000575672724742 * throttle) * u / 0.001168222604331f;
+    return u;
 }
 
 template<typename T, uint8_t N, uint8_t Nu>
@@ -118,12 +149,22 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const 
     if (log05Hz) start_time = AP_HAL::micros64();
 #endif
 
+    // skip if there is not enough past data for low-pass smoothing    
+    if (!_y.ready()) {
+        _y.add(y);
+        return T();
+    }
+
+    // low-pass smoothing
+    const T smoothed_y = get_lowpass_smoothed(&_y, y, GPC_LOWPASS_SMOOTHING_WINDOW, _low_pass_smoothing_weights);
+    _y.add(smoothed_y);
+
     // prediction
     const T predicted_y = _model->predict_one_step(transform_u(_current_u, throttle), T());    
     //GPC_DEBUG_LOG_1HZ("GPC py=%.2f", predicted_y);
 
     // adjust model to current measurement
-    _model->measured_y(y);
+    _model->measured_y(smoothed_y);
 
     // skip if there is not enough past data for the model
     if (!_model->ready()) {
@@ -132,8 +173,8 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const 
 
     //if (c % 10 != 0) return _current_u;
 
-    // prediction error
-    const T dk = y - predicted_y;
+    // prediction error 
+    const T dk = smoothed_y - predicted_y;
 
     // free trajectory prediction
     MatrixNxM<T, N, 1> y0k;

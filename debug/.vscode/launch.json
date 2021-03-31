@@ -7,7 +7,7 @@
         "request": "launch",
         "program": "${workspaceFolder}/build/gpc_debug",
         "args": [
-          "/home/michal/git/PW/PN/Elka1Q/logs/limited_freedom_pry_raw_motors_2021-03-20_log_74_cpp_debug.csv"
+          "/home/michal/git/PW/PN/Elka1Q/logs/limited_freedom_pry_raw_motors_2021-01-24_log_47_cpp_debug.csv"
         ],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",
@@ -30,7 +30,7 @@
         // Resolved by CMake Tools:
         "program": "${command:cmake.launchTargetPath}",
         "args": [
-          "/home/michal/git/PW/PN/Elka1Q/logs/limited_freedom_pry_raw_motors_2021-03-20_log_74_cpp_debug.csv"
+          "/home/michal/git/PW/PN/Elka1Q/logs/limited_freedom_pry_raw_motors_2021-01-24_log_47_cpp_debug.csv"
         ],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",
