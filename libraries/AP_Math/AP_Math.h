@@ -23,6 +23,14 @@
 AP_PARAMDEFV(Vector3f, Vector3f, AP_PARAM_VECTOR3F);
 
 /*
+ * Type-safe sign (signum) function
+ */
+template <typename T> 
+int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
+/*
  * Check whether two floats are equal
  */
 template <typename Arithmetic1, typename Arithmetic2>

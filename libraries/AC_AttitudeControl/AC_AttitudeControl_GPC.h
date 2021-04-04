@@ -36,7 +36,7 @@ public:
         _model(model),
         _y0_model(y0_model),
         _logger(logger),
-        _y(CircularBuffer<T>(GPC_LOWPASS_SMOOTHING_WINDOW + 1))
+        _ty(CircularBuffer<T>(3))
     {
         _current_u = T();
     }
@@ -54,13 +54,15 @@ public:
 
 private:
     T transform_u(const T &u, const T &throttle);
+    void guess_target_y();
 
     DebugLogger *_logger;
     GPC_Params<T> _gpc_params;
     LinearModelBase<T> *_model, *_y0_model;
     T _current_u;
     MatrixNxM<T, Nu, N> K;
-    CircularBuffer<T> _y;
+    MatrixNxM<T, N, 1> _target_y;
+    CircularBuffer<T> _ty;
     T _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW];
 };
 
@@ -147,24 +149,15 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const 
 #ifndef GPC_DEBUG    
     uint64_t start_time = 0;
     if (log05Hz) start_time = AP_HAL::micros64();
-#endif
-
-    // skip if there is not enough past data for low-pass smoothing    
-    if (!_y.ready()) {
-        _y.add(y);
-        return T();
-    }
-
-    // low-pass smoothing
-    const T smoothed_y = get_lowpass_smoothed(&_y, y, GPC_LOWPASS_SMOOTHING_WINDOW, _low_pass_smoothing_weights);
-    _y.add(smoothed_y);
+#endif    
+    _ty.add(target_y);
 
     // prediction
     const T predicted_y = _model->predict_one_step(transform_u(_current_u, throttle), T());    
     //GPC_DEBUG_LOG_1HZ("GPC py=%.2f", predicted_y);
 
     // adjust model to current measurement
-    _model->measured_y(smoothed_y);
+    const T smoothed_y = _model->measured_y(y);
 
     // skip if there is not enough past data for the model
     if (!_model->ready()) {
@@ -177,11 +170,10 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const 
     const T dk = smoothed_y - predicted_y;
 
     // free trajectory prediction
-    MatrixNxM<T, N, 1> y0k;
-    MatrixNxM<T, N, 1> y_target(target_y);
+    MatrixNxM<T, N, 1> y0k;    
     _y0_model->reset_to(*_model);
     for (uint8_t i=0;i<N;i++) {
-        y0k[i][0] = _y0_model->predict_one_step(transform_u(_current_u, throttle), dk);
+        y0k[i][0] = _y0_model->predict_one_step(transform_u(_current_u, throttle), 0.0f) + dk;
     }
 
     // GPC_DEBUG_LOG_05HZ("----Y0-----", NULL);
@@ -191,9 +183,13 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const 
     // }
     // GPC_DEBUG_LOG_05HZ("-----------", NULL);
 
+    // target y trajectory is smooth, so it can be ~guessed 
+    // non-constant target trajectory gives better u prediction
+    guess_target_y();
+
     // calculate GPC
-    y_target -= y0k;
-    MatrixNxM<T, Nu, 1> duk = K * y_target;
+    MatrixNxM<T, N, 1> y_diff = _target_y - y0k;
+    MatrixNxM<T, Nu, 1> duk = K * y_diff;
 
     // constraints
     T next_u = _current_u + constrain_float(duk[0][0], -GPC_MAX_duk, GPC_MAX_duk);
@@ -215,5 +211,47 @@ const T GPC_Controller<T, N, Nu>::run_step(const T &y, const T &target_y, const 
 #endif
 
     return _current_u;
+}
+
+template<typename T, uint8_t N, uint8_t Nu>
+void GPC_Controller<T, N, Nu>::guess_target_y() 
+{
+    if (!_ty.ready()) {
+        const T last_ty = _ty.get_last_item();
+        for (uint8_t i=0;i<N;i++) {
+            _target_y[i][0] = last_ty;
+        }
+
+        return;
+    }
+
+    T tys[3];
+    _ty.get_last_n_items(tys, 3);
+    
+    const T last_ty = tys[2];
+    const T dty1 = tys[1] - tys[0];
+    const T dty2 = tys[2] - tys[1];
+    const T ddty = dty2 - dty1;
+
+    T a_limit1 = T();
+    T a_limit2 = T();
+    if (sgn(dty2) == sgn(ddty)) {
+        a_limit1 = dty2;
+        a_limit2 = 1.5f * dty2;
+    } else {
+        a_limit1 = dty2;
+        a_limit2 = -1.5f * dty2;
+    }
+
+    const T a_min = std::min(a_limit1, a_limit2);
+    const T a_max = std::max(a_limit1, a_limit2);
+
+    _target_y[0][0] = last_ty;
+    T a = dty2;
+    T aa = ddty;
+    for (uint8_t i=1;i<N;i++) {
+        _target_y[i][0] = _target_y[i-1][0] + a;
+        a = constrain_float(a + aa, a_min, a_max);
+    }
 }
 

@@ -12,6 +12,14 @@
 #include <type_traits>
 #include <math.h>
 
+/*
+ * Type-safe sign (signum) function
+ */
+template <typename T> 
+int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 template <typename T>
 inline bool is_zero(const T fVal1) {
     static_assert(std::is_floating_point<T>::value || std::is_base_of<T,float>::value,

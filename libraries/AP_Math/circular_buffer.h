@@ -27,6 +27,13 @@ public:
         }
     }
 
+    void remove_last() 
+    {
+        if (_q.size() > 0) {
+            _q.pop_back();
+        }
+    }
+
     void replace_last(const T x)
     {
         if (_q.size() > 0) {

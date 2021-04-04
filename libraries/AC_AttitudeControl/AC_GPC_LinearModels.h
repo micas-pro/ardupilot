@@ -1,5 +1,9 @@
 #pragma once
 
+// #ifdef GPC_DEBUG
+// #include <stdio.h>
+// #endif
+
 #include "AC_GPC_Helpers.h"
 //#include <AP_Math/AP_Math.h>
 #include <AP_Math/matrixNxM.h>
@@ -22,11 +26,11 @@
 #define GPC_LINEAR_MODEL_BN                     2
 #define GPC_LINEAR_MODEL_UDELAY                 15
 
-#define GPC_N                                   30
-#define GPC_Nu                                  10
+#define GPC_N                                   70
+#define GPC_Nu                                  2
 #define GPC_lambda                              1.000f
 
-#define GPC_MAX_duk                             0.4f
+#define GPC_MAX_duk                             0.9f
 #define GPC_GAUSSIAN_SMOOTHING_WINDOW           10
 #define GPC_LOWPASS_SMOOTHING_WINDOW            7
 
@@ -98,18 +102,10 @@ const float normalization_d1u[2] = { 0.0f, 0.0f };
 
 const float linear_model_w[GPC_LINEAR_MODEL_AN + GPC_LINEAR_MODEL_BN] = { 1.393158126378344f,  -0.393346437291313f,   0.000978736065689f,   0.012937070114930f };
 
-// N = 30, Nu = 10, lambda = 1, udelay = 15
+// N = 70, Nu = 2, lambda = 50000/Nu, udelay = 15
 const float gpc_K[GPC_Nu][GPC_N] = {
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000581088329f, 0.009351513757f, 0.025102215983f, 0.044294746544f, 0.063401743379f, 0.079627326636f, 0.091007593208f, 0.096289995752f, 0.094752535212f, 0.086028377807f, 0.069961165894f, 0.046490779530f, 0.015594964847f, -0.022733633345f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000301117582f, -0.004263991355f, -0.003643073836f, 0.002180514217f, 0.011467714723f, 0.022090206116f, 0.032203318220f, 0.040414808703f, 0.045764079851f, 0.047638323335f, 0.045681145715f, 0.039753082398f, 0.029800023248f, 0.015801442182f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000219981413f, -0.003841915222f, -0.013776732597f, -0.020436617713f, -0.021849408264f, -0.018663467586f, -0.012220048770f, -0.003838523648f, 0.005416769921f, 0.014778094972f, 0.023748614741f, 0.032132973850f, 0.039854440338f, 0.046882956791f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000153809379f, -0.002697034757f, -0.010514748069f, -0.025571747364f, -0.037291123793f, -0.042862161871f, -0.042280932883f, -0.036402275202f, -0.026189482629f, -0.012446936414f, 0.004258279826f, 0.023702547869f, 0.045797392489f, 0.070507513140f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000101803961f, -0.001794821516f, -0.007137443987f, -0.018380067758f, -0.036785517695f, -0.051138115923f, -0.058082974221f, -0.057162887032f, -0.048857227928f, -0.033819329974f, -0.012589306901f, 0.014619223436f, 0.047721109394f, 0.086681747096f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000062761676f, -0.001115110534f, -0.004558308457f, -0.012050180779f, -0.025356501897f, -0.045254535894f, -0.060069948549f, -0.066024544808f, -0.062276531699f, -0.048963151105f, -0.026431206947f, 0.005181150733f, 0.045817871166f, 0.095455207595f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000035103717f, -0.000631292409f, -0.002689006525f, -0.007375311810f, -0.016020526158f, -0.030018996310f, -0.049757448921f, -0.063168294356f, -0.066091688319f, -0.057330201154f, -0.036693864747f, -0.004110191980f, 0.040447079883f, 0.096986026435f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000016959645f, -0.000311693393f, -0.001422227910f, -0.004124801842f, -0.009367028595f, -0.018191536389f, -0.031658744918f, -0.049795782217f, -0.060170189827f, -0.058272291418f, -0.042578271303f, -0.012491339973f, 0.032220537260f, 0.091645876376f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000006287355f, -0.000121593597f, -0.000638312821f, -0.002036256781f, -0.004943177216f, -0.010081401683f, -0.018210603155f, -0.030072057725f, -0.045359894675f, -0.051316951669f, -0.043128727642f, -0.018904119462f, 0.022097711722f, 0.080165012902f }, 
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000001015136f, -0.000025638692f, -0.000213494670f, -0.000833217925f, -0.002261735831f, -0.004951035508f, -0.009390781076f, -0.016070829034f, -0.025446440555f, -0.036930281128f, -0.037500679504f, -0.022037662812f, 0.011469672771f, 0.063808911156f }
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000029626f, 0.000000483042f, 0.000001395140f, 0.000002779561f, 0.000004641579f, 0.000006983179f, 0.000009805053f, 0.000013107382f, 0.000016890146f, 0.000021153247f, 0.000025896557f, 0.000031119933f, 0.000036823231f, 0.000043006302f, 0.000049668999f, 0.000056811171f, 0.000064432671f, 0.000072533350f, 0.000081113058f, 0.000090171648f, 0.000099708970f, 0.000109724876f, 0.000120219217f, 0.000131191845f, 0.000142642611f, 0.000154571368f, 0.000166977965f, 0.000179862256f, 0.000193224091f, 0.000207063322f, 0.000221379802f, 0.000236173382f, 0.000251443914f, 0.000267191250f, 0.000283415242f, 0.000300115741f, 0.000317292601f, 0.000334945672f, 0.000353074808f, 0.000371679860f, 0.000390760680f, 0.000410317121f, 0.000430349036f, 0.000450856276f, 0.000471838694f, 0.000493296143f, 0.000515228475f, 0.000537635542f, 0.000560517197f, 0.000583873294f, 0.000607703683f, 0.000632008219f, 0.000656786755f, 0.000682039142f }, 
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000000009084f, -0.000000120410f, 0.000000032323f, 0.000000593148f, 0.000001618643f, 0.000003130975f, 0.000005138774f, 0.000007645338f, 0.000010651872f, 0.000014158756f, 0.000018166045f, 0.000022673666f, 0.000027681496f, 0.000033189393f, 0.000039197207f, 0.000045704785f, 0.000052711972f, 0.000060218612f, 0.000068224553f, 0.000076729637f, 0.000085733712f, 0.000095236620f, 0.000105238209f, 0.000115738322f, 0.000126736805f, 0.000138233504f, 0.000150228263f, 0.000162720928f, 0.000175711345f, 0.000189199358f, 0.000203184814f, 0.000217667558f, 0.000232647436f, 0.000248124293f, 0.000264097974f, 0.000280568326f, 0.000297535195f, 0.000314998426f, 0.000332957866f, 0.000351413359f, 0.000370364753f, 0.000389811892f, 0.000409754624f, 0.000430192795f, 0.000451126250f, 0.000472554836f, 0.000494478398f, 0.000516896785f, 0.000539809841f, 0.000563217413f, 0.000587119348f, 0.000611515492f, 0.000636405692f, 0.000661789794f }
 };
 
 const float gpc_gaussian_smoothing_weights[GPC_GAUSSIAN_SMOOTHING_WINDOW] = {
@@ -137,10 +133,20 @@ T get_lowpass_smoothed(const CircularBuffer<T> *smoothed, const T &x, const size
 {
     T data[window_size + 1];
     smoothed->get_last_n_items(data, window_size);
+
+    // for(int i=0;i<window_size;i++) printf("%.3f ", data[i]);
+    // printf("\n");
+
     const T last_smoothed_y = data[window_size - 1];
     data[window_size] = x;
 
+    // for(int i=0;i<window_size+1;i++) printf("%.3f ", data[i]);
+    // printf("\n");
+
     calculate_diffs(data, window_size);
+
+    // for(int i=0;i<window_size;i++) printf("%.3f ", data[i]);
+    // printf("\n");
 
     T u = T();
     for (size_t i=0; i<window_size; i++) {
@@ -191,11 +197,12 @@ public:
     }
 
     virtual void load_weights(const T w[]) = 0;
-    T predict_one_step(const T &_u, const T &dk);
-    void measured_y(const T &_y);
+    T predict_one_step(const T &_u, const T &dk);    
     void reset_to(const LinearModelBase &model);
     bool ready();
 
+    virtual T measured_y(const T &_y);
+    void measured_y_no_smooth(const T &_y);
     virtual void read_u(T t_array[], const size_t n); // take last n of u elements
     virtual void read_y(T t_array[], const size_t n); // take last n of y elements
 
@@ -203,7 +210,7 @@ protected:
 
     T check_and_denormalize_dy(const T &dy);   
 
-    virtual T predict_next_dy() = 0;
+    virtual T predict_next_dy(const T &dk) = 0;
 
     DebugLogger *_logger;    
     uint8_t y_steps, u_steps;
@@ -216,7 +223,7 @@ class DifferenceEquationModel : virtual public LinearModelBase<T>
 {
 public:
     DifferenceEquationModel(const uint8_t _an, const uint8_t _bn, const uint8_t _udelay, DebugLogger *logger): 
-        LinearModelBase<T>(_an + GPC_GAUSSIAN_SMOOTHING_WINDOW, _bn + _udelay, logger),
+        LinearModelBase<T>(_an + GPC_GAUSSIAN_SMOOTHING_WINDOW + 1, _bn + _udelay, logger),
         an(_an),
         bn(_bn),
         udelay(_udelay)
@@ -231,11 +238,12 @@ public:
         delete [] b;
     }
 
+    virtual T measured_y(const T &_y) override;
     virtual void load_weights(const T w[]) override;
 
 protected:
 
-    virtual T predict_next_dy() override;
+    virtual T predict_next_dy(const T &dk) override;
 
     uint8_t an, bn, udelay;
 
@@ -243,6 +251,10 @@ protected:
     //        + b[0]*u(k-udelay) + b[1]*u(k-udelay-1) + ... + b[bn-1]*u(k-udelay-bn+1)
     T *a; 
     T *b;    
+
+private:
+
+    T _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW];
 };
 
 template <typename T>
@@ -263,9 +275,9 @@ protected:
     void fill_y(const size_t pos_in_state);
     void fill_dy_chain(const size_t pos_in_state, const uint8_t n);
     void fill_d1u(const size_t pos_in_state, const uint8_t n);
-    virtual T predict_next_dy() override;
+    virtual T predict_next_dy(const T &dk) override;
 
-    virtual void fill_current_state() = 0;
+    virtual void fill_current_state(const T &dk) = 0;
 
     MatrixNxM<T, GPC_LINEAR_MODEL_WEIGHTS, 1> weights;
     MatrixNxM<T, 1, GPC_LINEAR_MODEL_WEIGHTS> state;
@@ -283,7 +295,7 @@ public:
     virtual ~LinearModel() {}
 
 protected:
-    void fill_current_state() override;
+    void fill_current_state(const T &dk) override;
 };
 
 // ----------------------------------------------------------------------------------
@@ -308,7 +320,7 @@ public:
 
 protected:
     
-    void fill_current_state() override;
+    void fill_current_state(const T &dk) override;
 
     uint8_t gaussian_smoothing_window;
     uint8_t real_y_steps;
@@ -332,7 +344,7 @@ public:
     virtual ~LinearModelNoYwideD1MultiAttention() {}
 
 protected:
-    void fill_current_state() override;
+    void fill_current_state(const T &dk) override;
 
     uint8_t y_diffs;
     uint8_t u_window;
@@ -425,7 +437,7 @@ T LinearModelBase<T>::predict_one_step(const T &_u, const T &dk)
     }
 
     // get next denormalized dy - can be overriden in derived classes
-    const T denormalized_dy = this->predict_next_dy();    
+    const T denormalized_dy = this->predict_next_dy(dk);    
     
     T last_y = this->y->get_last_item();
     T py = last_y + denormalized_dy + dk;
@@ -446,10 +458,10 @@ T LinearModelBase<T>::check_and_denormalize_dy(const T &dy)
 }
 
 template<typename T>
-T NeuralLinearModelBase<T>::predict_next_dy()
+T NeuralLinearModelBase<T>::predict_next_dy(const T &dk)
 {
     // can be overriden in derived classes
-    this->fill_current_state();
+    this->fill_current_state(dk);
 
     // A[1xN] * W[Nx1] = Y[1x1]  <-- model predicts dy, not y!
     MatrixNxM<T, 1, 1> pdy = this->state * this->weights;
@@ -459,9 +471,10 @@ T NeuralLinearModelBase<T>::predict_next_dy()
 }
 
 template<typename T>
-void LinearModelBase<T>::measured_y(const T &_y) 
+T LinearModelBase<T>::measured_y(const T &_y) 
 {
     y->replace_last(_y);
+    return _y;
 }
 
 template<typename T>
@@ -492,7 +505,7 @@ bool LinearModelBase<T>::ready()
 // ------------------------------------
 
 template<typename T>
-void LinearModel<T>::fill_current_state() 
+void LinearModel<T>::fill_current_state(const T &dk) 
 {
     GPC_DEBUG_LOG_INIT;
 
@@ -507,7 +520,7 @@ void LinearModel<T>::fill_current_state()
  // ------------------------------------------------------------
 
 template<typename T>
-void LinearModelNoYuDiff<T>::fill_current_state() 
+void LinearModelNoYuDiff<T>::fill_current_state(const T &dk) 
 {
     GPC_DEBUG_LOG_INIT;
 
@@ -535,7 +548,7 @@ void LinearModelNoYuDiff<T>::read_y(T t_array[], const size_t n)
 }
 
 template<typename T>
-void LinearModelNoYwideD1MultiAttention<T>::fill_current_state() 
+void LinearModelNoYwideD1MultiAttention<T>::fill_current_state(const T &dk) 
 {
     GPC_DEBUG_LOG_INIT;
 
@@ -569,10 +582,31 @@ void DifferenceEquationModel<T>::load_weights(const T w[])
     for (size_t i=0;i<this->bn;i++) {
         b[i] = w[this->an + i];
     }
+
+    const T n = (GPC_LOWPASS_SMOOTHING_WINDOW-1)*1.1f + 0.9f;
+    for (size_t i=0;i<GPC_LOWPASS_SMOOTHING_WINDOW-1;i++) {
+        _low_pass_smoothing_weights[i] = 1.1f / n;
+    }
+
+    _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW-1] = 0.9f / n;
 }
 
 template<typename T>
-T DifferenceEquationModel<T>::predict_next_dy() 
+T DifferenceEquationModel<T>::measured_y(const T &_y) 
+{    
+    if (this->y->ready()) {
+        this->y->remove_last();
+        T smoothed_y = get_lowpass_smoothed(this->y, _y, GPC_LOWPASS_SMOOTHING_WINDOW, _low_pass_smoothing_weights);
+        this->y->add(smoothed_y);
+        return smoothed_y;
+    } else {
+        this->y->replace_last(_y);
+        return _y;
+    }
+}
+
+template<typename T>
+T DifferenceEquationModel<T>::predict_next_dy(const T &dk) 
 {
     const size_t u_elements = this->bn + this->udelay;
     T cu[u_elements];
@@ -580,6 +614,10 @@ T DifferenceEquationModel<T>::predict_next_dy()
 
     T cy[this->an + 1];
     this->read_y(cy, this->an + 1);
+    // for (size_t i=0;i<this->an + 1;i++) {
+    //     cy[i] += dk;
+    // }
+
     calculate_diffs(cy, this->an);
 
     T dy = T();
@@ -596,4 +634,8 @@ T DifferenceEquationModel<T>::predict_next_dy()
     return this->check_and_denormalize_dy(dy);
 }
 
-
+template<typename T>
+void LinearModelBase<T>::measured_y_no_smooth(const T &_y) 
+{
+    this->y->replace_last(_y);
+}   

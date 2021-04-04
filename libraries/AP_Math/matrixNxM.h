@@ -82,3 +82,27 @@ MatrixNxM<T, N, K> operator*(const MatrixNxM<T, N, M> &A, const MatrixNxM<T, M, 
     return result;
 }
 
+template<typename T, uint8_t N, uint8_t M>
+MatrixNxM<T, N, M> operator-(const MatrixNxM<T, N, M> &A, const MatrixNxM<T, N, M> &B)
+{
+    MatrixNxM<T, N, M> result;
+
+    for (int i=0;i<N;i++)
+        for (int j=0;j<M;j++)
+            result[i][j] = A[i][j] - B[i][j];
+
+    return result;
+}
+
+template<typename T, uint8_t N, uint8_t M>
+MatrixNxM<T, N, M> operator+(const MatrixNxM<T, N, M> &A, const MatrixNxM<T, N, M> &B)
+{
+    MatrixNxM<T, N, M> result;
+
+    for (int i=0;i<N;i++)
+        for (int j=0;j<M;j++)
+            result[i][j] = A[i][j] + B[i][j];
+
+    return result;
+}
+
