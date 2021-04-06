@@ -72,8 +72,8 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Dif
     vector<float> gpc_u;
     gpc_u.resize(data.size());
 
-    const int sim_start = 5000-1;
-    const int sim_end = sim_start + 2000;
+    const int sim_start = 2970-1;
+    const int sim_end = sim_start + 200;
 
     // simulated model, preloaded with real y and u = 0
     DifferenceEquationModel<float> model(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
@@ -150,7 +150,7 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Dif
     ss = get_lowpass_smoothed(&smoothed_y, 9.0f, 7, _low_pass_smoothing_weights); smoothed_y.add(ss);
 
 
-    for (int i=50;i>=1;i--) {
+    for (int i=20;i>=1;i--) {
         // if (!smoothed_y.ready()) {
         //     smoothed_y.add(data[sim_start-i].y);
         // } else {
