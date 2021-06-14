@@ -342,8 +342,8 @@ void AC_AttitudeControl_Multi::rate_controller_run()
                                               0.0f, 0.0f,
                                               _motors.get_throttle());
 
-    //const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch() + (1.0f - _secondary_controller_weight) * pid_pitch, -1.0f, 1.0f);
-    const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch(), -1.0f, 1.0f);
+    const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch() + (1.0f - _secondary_controller_weight) * pid_pitch, -1.0f, 1.0f);
+    //const float pitch = constrain_float(_secondary_controller_weight * _secondary_controller.get_pitch(), -1.0f, 1.0f);
     _motors.set_pitch(pitch);
 
     AC_DEBUG_LOG_1HZ("PID=%.3f GPC=%.3f * %.2f", pid_pitch, _secondary_controller.get_pitch(), _secondary_controller_weight);

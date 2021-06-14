@@ -51,6 +51,8 @@ public:
         }
     }
 
+    // returns [x(k-n+1), x(k-n+2), ..., x(k-1), x(k)]
+    //         [the oldest       -->      most recent]
     void get_last_n_items(T buff[], const size_t n) const
     {
         size_t nn = n;

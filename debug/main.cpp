@@ -63,7 +63,7 @@ vector<UY> read_csv_data(const string &filename)
     return result;
 }
 
-void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, DifferenceEquationModel<float> *gpc_linear_model)
+void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, NeuralLinearModel<float> *gpc_linear_model)
 {
     logger.debug_msg("Loading data from: %s", filename.c_str());
     auto data = read_csv_data(filename);
@@ -72,11 +72,12 @@ void test(const string &filename, GPC_Controller<float, GPC_N, GPC_Nu> *gpc, Dif
     vector<float> gpc_u;
     gpc_u.resize(data.size());
 
-    const int sim_start = 2970-1;
-    const int sim_end = sim_start + 200;
+    const int sim_start = 1000-1;
+    const int sim_end = sim_start + 9000;
 
     // simulated model, preloaded with real y and u = 0
-    DifferenceEquationModel<float> model(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
+    //DifferenceEquationModel<float> model(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
+    NeuralLinearModel<float> model(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U, GPC_LINEAR_MODEL_UDELAY, &logger);
     model.load_weights(defines::gpc::linear_model_w);
     CircularBuffer<float> smoothed_y(GPC_LOWPASS_SMOOTHING_WINDOW + 5);
     
@@ -194,8 +195,8 @@ int main(int argc, char* argv[]) {
     params.min_u = -0.41f;
     params.max_u = 0.41f;
 
-    auto linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
-    auto y0_linear_model = new DifferenceEquationModel<float>(GPC_LINEAR_MODEL_AN, GPC_LINEAR_MODEL_BN, GPC_LINEAR_MODEL_UDELAY, &logger);
+    auto linear_model = new NeuralLinearModel<float>(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U, GPC_LINEAR_MODEL_UDELAY, &logger);
+    auto y0_linear_model = new NeuralLinearModel<float>(GPC_LINEAR_MODEL_DY, GPC_LINEAR_MODEL_U, GPC_LINEAR_MODEL_UDELAY, &logger);
     GPC_Controller<float, GPC_N, GPC_Nu> *gpc_pitch_controller = new GPC_Controller<float, GPC_N, GPC_Nu>(
         params, 
         linear_model, 

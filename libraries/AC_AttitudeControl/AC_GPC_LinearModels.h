@@ -11,10 +11,10 @@
 
 #define GPC_LINEAR_MODEL_MAX_DY_ABS             0.45f
 #define GPC_LINEAR_MODEL_Y                      0
-#define GPC_LINEAR_MODEL_DY                     4
-#define GPC_LINEAR_MODEL_U                      0
+#define GPC_LINEAR_MODEL_DY                     2
+#define GPC_LINEAR_MODEL_U                      5
 #define GPC_LINEAR_MODEL_D1U                    0
-#define GPC_LINEAR_MODEL_U_SUM_WINDOW           30
+#define GPC_LINEAR_MODEL_U_SUM_WINDOW           0
 #if GPC_LINEAR_MODEL_U_SUM_WINDOW > 0
     #define GPC_LINEAR_MODEL_U_SUM_USED 1
 #else
@@ -24,9 +24,9 @@
 #define GPC_LINEAR_MODEL_WEIGHTS                (GPC_LINEAR_MODEL_Y + GPC_LINEAR_MODEL_DY + GPC_LINEAR_MODEL_U + GPC_LINEAR_MODEL_D1U + GPC_LINEAR_MODEL_U_SUM_WINDOW + GPC_LINEAR_MODEL_U_SUM_USED)
 #define GPC_LINEAR_MODEL_AN                     2
 #define GPC_LINEAR_MODEL_BN                     2
-#define GPC_LINEAR_MODEL_UDELAY                 18
+#define GPC_LINEAR_MODEL_UDELAY                 15
 
-#define GPC_N                                   90
+#define GPC_N                                   60
 #define GPC_Nu                                  1
 #define GPC_lambda                              1.000f
 
@@ -38,39 +38,36 @@ namespace defines {
 
 namespace gpc {
 
+// const float normalization_dy[6][2] = {
+//     { 0.0f, 0.0f },
+//     { 0.0f, 0.0f },
+//     { 0.0f, 0.0f },
+//     { 0.0f, 0.0f },
+//     { 0.0f, 0.0f },
+//     { 0.0f, 0.0f },
+// };
+
+// const float normalization_u[2] = { 0.0f, 0.0f };
+// const float normalization_d1u[2] = { 0.0f, 0.0f };
+
 const float normalization_dy[6][2] = {
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
-    { 0.0f, 0.0f },
+    { 0.000000000000f, 80.000000000000f },
+    { 0.000000000000f, 0.800000000000f },
+    { 0.000000000000f, 0.060000000000f },
+    { 0.000000000000f, 0.000600000000f },
+    { 0.000000000000f, 0.000600000000f },
+    { 0.000000000000f, 0.000600000000f }
 };
 
-const float normalization_u[2] = { 0.0f, 0.0f };
-const float normalization_d1u[2] = { 0.0f, 0.0f };
+const float normalization_u[2] = { 0.000000000000f, 1.200000000000f };
+const float normalization_d1u[2] = { 0.000000000000f, 0.056000000000f };
 
-// const float normalization_dy[6][2] = {
-//     { 0.000000000000f, 80.000000000000f },
-//     { 0.000000000000f, 0.030000000000f },
-//     { 0.000000000000f, 0.000600000000f },
-//     { 0.000000000000f, 0.000600000000f },
-//     { 0.000000000000f, 0.000600000000f },
-//     { 0.000000000000f, 0.000600000000f }
-// };
+// const float linear_model_w[GPC_LINEAR_MODEL_AN + GPC_LINEAR_MODEL_BN] = { 1.654588834476731f,  -0.654429551073278f,  -0.030101209887701f,   0.035474738883490f };
+const float linear_model_w[GPC_LINEAR_MODEL_WEIGHTS] = {0.01238516f, 0.01722785f, 0.00185335f, 0.0006051f, 0.00041265f, 1.0050346f, -0.02024307f};
 
-// const float normalization_u[2] = { 0.000000000000f, 1.200000000000f };
-// const float normalization_d1u[2] = { 0.000000000000f, 0.056000000000f };
-
-// const float linear_model_w[GPC_LINEAR_MODEL_WEIGHTS] = { 
-//    
-// };
-
-const float linear_model_w[GPC_LINEAR_MODEL_AN + GPC_LINEAR_MODEL_BN] = { 1.654588834476731f,  -0.654429551073278f,  -0.030101209887701f,   0.035474738883490f };
-
-// N = 90, Nu = 1, lambda = 300000*(Nu/N)*10;, udelay = 18
+// N = 60, Nu = 1, lambda = 300000*(Nu/N)*1, udelay = 15
 const float gpc_K[GPC_Nu][GPC_N] = {
-    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, -0.000001921763f, -0.000004758426f, -0.000007851214f, -0.000010769047f, -0.000013229784f, -0.000015048712f, -0.000016104846f, -0.000016318891f, -0.000015638816f, -0.000014030431f, -0.000011471212f, -0.000007946267f, -0.000003445697f, 0.000002037133f, 0.000008506719f, 0.000015966162f, 0.000024417650f, 0.000033862772f, 0.000044302725f, 0.000055738453f, 0.000068170731f, 0.000081600225f, 0.000096027530f, 0.000111453194f, 0.000127877736f, 0.000145301652f, 0.000163725429f, 0.000183149542f, 0.000203574463f, 0.000225000661f, 0.000247428600f, 0.000270858744f, 0.000295291559f, 0.000320727505f, 0.000347167047f, 0.000374610647f, 0.000403058768f, 0.000432511872f, 0.000462970423f, 0.000494434883f, 0.000526905716f, 0.000560383386f, 0.000594868356f, 0.000630361090f, 0.000666862052f, 0.000704371707f, 0.000742890519f, 0.000782418953f, 0.000822957473f, 0.000864506546f, 0.000907066635f, 0.000950638208f, 0.000995221729f, 0.001040817666f, 0.001087426483f, 0.001135048648f, 0.001183684627f, 0.001233334887f, 0.001283999895f, 0.001335680119f, 0.001388376025f, 0.001442088083f, 0.001496816759f, 0.001552562522f, 0.001609325840f, 0.001667107183f, 0.001725907018f, 0.001785725814f, 0.001846564042f, 0.001908422171f, 0.001971300669f }
+    { 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000000000f, 0.000000037496f, 0.000000157540f, 0.000000516795f, 0.000002639615f, 0.000007248843f, 0.000014161894f, 0.000023439649f, 0.000035077581f, 0.000049088794f, 0.000065481701f, 0.000084266020f, 0.000105451169f, 0.000129046694f, 0.000155062152f, 0.000183507149f, 0.000214391322f, 0.000247724351f, 0.000283515953f, 0.000321775882f, 0.000362513933f, 0.000405739938f, 0.000451463770f, 0.000499695340f, 0.000550444597f, 0.000603721533f, 0.000659536175f, 0.000717898595f, 0.000778818900f, 0.000842307240f, 0.000908373806f, 0.000977028826f, 0.001048282572f, 0.001122145354f, 0.001198627527f, 0.001277739481f, 0.001359491654f, 0.001443894520f, 0.001530958596f, 0.001620694444f, 0.001713112663f, 0.001808223897f, 0.001906038831f, 0.002006568194f, 0.002109822756f, 0.002215813330f }
 };
 
 const float gpc_gaussian_smoothing_weights[GPC_GAUSSIAN_SMOOTHING_WINDOW] = {
@@ -131,7 +128,7 @@ void read_and_smooth_gaussian(const CircularBuffer<T> *c, T buff[], const size_t
     T raw_data[n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1];
     c->get_last_n_items(raw_data, n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1);
     for (size_t k=0, i=GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i<n + GPC_GAUSSIAN_SMOOTHING_WINDOW - 1; i++, k++) {
-        for (size_t j=0; j<GPC_GAUSSIAN_SMOOTHING_WINDOW; j++) {
+        for (size_t j=0; j<GPC_GAUSSIAN_SMOOTHING_WINDOW; j++) { 
             buff[k] += gaussian_weights[j] * raw_data[i-j];
         }
     }
@@ -226,7 +223,8 @@ template <typename T>
 class NeuralLinearModelBase : virtual public LinearModelBase<T>
 {
 public:
-    NeuralLinearModelBase(const uint8_t _y_steps, const uint8_t _u_steps, DebugLogger *logger): LinearModelBase<T>(_y_steps, _u_steps, logger) 
+    NeuralLinearModelBase(const uint8_t _y_steps, const uint8_t _u_steps, DebugLogger *logger): 
+        LinearModelBase<T>(_y_steps, _u_steps, logger) 
     {}
 
     virtual ~NeuralLinearModelBase() {}
@@ -235,7 +233,9 @@ public:
 
 protected:
 
-    void fill_u(const size_t pos_in_state, const uint8_t n);
+    T _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW];
+
+    virtual void fill_u(const size_t pos_in_state, const uint8_t n);
     T fill_u_and_get_u_sum(const size_t pos_in_state, const uint8_t n);
     void fill_y(const size_t pos_in_state);
     void fill_dy_chain(const size_t pos_in_state, const uint8_t n);
@@ -251,16 +251,23 @@ protected:
 // ----------------------------------------------------------------------------------
 
 template<typename T>
-class LinearModel : virtual public NeuralLinearModelBase<T>
+class NeuralLinearModel : virtual public NeuralLinearModelBase<T>
 {
 public:
-    LinearModel(const uint8_t _y_steps, const uint8_t _u_steps, DebugLogger *logger): NeuralLinearModelBase<T>(_y_steps, _u_steps, logger)
+    NeuralLinearModel(const uint8_t _y_steps, const uint8_t _u_steps, const uint8_t _udelay, DebugLogger *logger): 
+        NeuralLinearModelBase<T>(_y_steps + 1 + GPC_LOWPASS_SMOOTHING_WINDOW, _u_steps + _udelay, logger),
+        LinearModelBase<T>(_y_steps + 1 + GPC_LOWPASS_SMOOTHING_WINDOW, _u_steps + _udelay, logger), 
+        udelay(_udelay)
     {}
 
-    virtual ~LinearModel() {}
+    virtual ~NeuralLinearModel() {}
 
 protected:
+    void fill_u(const size_t pos_in_state, const uint8_t n) override;
     void fill_current_state(const T &dk) override;
+    //T measured_y(const T &_y) override;
+
+    uint8_t udelay;
 };
 
 // ----------------------------------------------------------------------------------
@@ -340,6 +347,18 @@ void NeuralLinearModelBase<T>::fill_u(const size_t pos_in_state, const uint8_t n
 }
 
 template<typename T>
+void NeuralLinearModel<T>::fill_u(const size_t pos_in_state, const uint8_t n) 
+{
+    T buff[n + this->udelay];
+    this->read_u(buff, n + this->udelay);
+    // for(int i=0;i<n + this->udelay;i++) printf("%.5f ", buff[i]);
+    // printf("\n");
+    for (size_t i=0;i<n;i++) {
+        this->state[0][pos_in_state + i] = normalize_u(buff[i]);
+    }
+}
+
+template<typename T>
 T NeuralLinearModelBase<T>::fill_u_and_get_u_sum(const size_t pos_in_state, const uint8_t n) 
 {
     T buff[n];
@@ -389,6 +408,13 @@ void NeuralLinearModelBase<T>::load_weights(const T w[])
     for (int i=0;i<GPC_LINEAR_MODEL_WEIGHTS;i++) {
         weights[i][0] = w[i];
     }
+
+    const T n = (GPC_LOWPASS_SMOOTHING_WINDOW-1)*1.1f + 0.9f;
+    for (size_t i=0;i<GPC_LOWPASS_SMOOTHING_WINDOW-1;i++) {
+        _low_pass_smoothing_weights[i] = 1.1f / n;
+    }
+
+    _low_pass_smoothing_weights[GPC_LOWPASS_SMOOTHING_WINDOW-1] = 0.9f / n;
 }
 
 template<typename T>
@@ -470,7 +496,7 @@ bool LinearModelBase<T>::ready()
 // ------------------------------------
 
 template<typename T>
-void LinearModel<T>::fill_current_state(const T &dk) 
+void NeuralLinearModel<T>::fill_current_state(const T &dk) 
 {
     GPC_DEBUG_LOG_INIT;
 
@@ -479,8 +505,7 @@ void LinearModel<T>::fill_current_state(const T &dk)
     }
 
     this->fill_u(0, GPC_LINEAR_MODEL_U);
-    this->fill_y(GPC_LINEAR_MODEL_U);
-    this->fill_dy_chain(GPC_LINEAR_MODEL_U + 1, GPC_LINEAR_MODEL_DY);
+    this->fill_dy_chain(GPC_LINEAR_MODEL_U, GPC_LINEAR_MODEL_DY);
 }
  // ------------------------------------------------------------
 
@@ -569,6 +594,20 @@ T DifferenceEquationModel<T>::measured_y(const T &_y)
         return _y;
     }
 }
+
+// template<typename T>
+// T NeuralLinearModel<T>::measured_y(const T &_y) 
+// {    
+//     if (this->y->ready()) {
+//         this->y->remove_last();
+//         T smoothed_y = get_lowpass_smoothed(this->y, _y, GPC_LOWPASS_SMOOTHING_WINDOW, this->_low_pass_smoothing_weights);
+//         this->y->add(smoothed_y);
+//         return smoothed_y;
+//     } else {
+//         this->y->replace_last(_y);
+//         return _y;
+//     }
+// }
 
 template<typename T>
 T DifferenceEquationModel<T>::predict_next_dy(const T &dk) 
